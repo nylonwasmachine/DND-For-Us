@@ -10,301 +10,255 @@
   box-sizing: border-box;
 }
 
-:root {
-  --bg: #0b0d12;
-  --card: #151923;
-  --card2: #1c2230;
-  --border: #303849;
-  --text: #f5f7fb;
-  --muted: #9aa4b5;
-  --accent: #8b5cf6;
-  --danger: #ef4444;
-}
-
 body {
   margin: 0;
-  background: linear-gradient(135deg, #0b0d12, #171225);
-  color: var(--text);
-  font-family: Arial, Helvetica, sans-serif;
-  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  background: #100d18;
+  color: #eee;
 }
 
 header {
-  padding: 24px 5%;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 15px;
-  position: sticky;
-  top: 0;
-  background: rgba(11, 13, 18, 0.94);
-  backdrop-filter: blur(10px);
-  z-index: 5;
+  padding: 20px;
+  text-align: center;
+  background: #1b1428;
+  border-bottom: 1px solid #3b2a52;
 }
 
 h1 {
-  margin: 0;
-  font-size: 30px;
-}
-
-header p {
-  margin: 5px 0 0;
-  color: var(--muted);
+  margin: 0 0 12px;
+  color: #c9a7ff;
 }
 
 button {
   border: 0;
-  border-radius: 9px;
-  padding: 10px 14px;
-  background: var(--accent);
+  border-radius: 8px;
+  padding: 9px 13px;
+  background: #6d3bb5;
   color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover {
+  background: #824bd0;
+}
+
+button.danger {
+  background: #8d3030;
+}
+
+button.small {
+  padding: 6px 9px;
+  font-size: 12px;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 20px auto;
+  padding: 0 14px;
+}
+
+.players {
+  display: grid;
+  gap: 20px;
+}
+
+.player {
+  background: #1a1523;
+  border: 1px solid #3a2a4c;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 8px 25px #0004;
+}
+
+/* PLAYER NAAM */
+
+.player-header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.player-header input {
+  flex: 1;
+  font-size: 20px;
+  font-weight: bold;
+  background: #0f0c15;
+  color: white;
+  border: 1px solid #49365d;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+/* PLAATJE + STATS */
+
+.player-overview {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* AFBEELDING */
+
+.image-box {
+  text-align: center;
+}
+
+.character-image {
+  width: 160px;
+  height: 160px;
+  border-radius: 12px;
+  border: 2px solid #60477a;
+  background: #0f0c15;
+  object-fit: cover;
+  display: block;
+  margin: auto;
+}
+
+.image-placeholder {
+  width: 160px;
+  height: 160px;
+  border-radius: 12px;
+  border: 2px dashed #60477a;
+  background: #0f0c15;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+  font-size: 46px;
+  color: #6f607d;
+}
+
+.image-controls {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.file-label {
+  display: inline-block;
+  background: #6d3bb5;
+  color: white;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
   font-weight: bold;
   cursor: pointer;
 }
 
-button:hover {
-  filter: brightness(1.12);
+.file-label:hover {
+  background: #824bd0;
 }
 
-button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+.file-input {
+  display: none;
 }
 
-.danger {
-  background: transparent;
-  border: 1px solid #7f3030;
-  color: #ff8b8b;
-}
-
-main {
-  width: min(1400px, 92%);
-  margin: 28px auto 70px;
-}
-
-.actions {
-  display: flex;
-  gap: 8px;
-}
-
-.notice {
-  padding: 12px 15px;
-  border: 1px solid #55418c;
-  background: #211a38;
-  border-radius: 10px;
-  margin-bottom: 18px;
-  color: #ddd3ff;
-}
-
-.hidden {
-  display: none !important;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 18px;
-}
-
-.player {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 15px;
-  overflow: hidden;
-  box-shadow: 0 15px 40px #0003;
-}
-
-.player-head {
-  padding: 15px 16px;
-  background: #19152a;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.number {
-  background: var(--accent);
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-weight: bold;
-  flex: none;
-}
-
-.name {
-  background: transparent;
-  border: 0;
-  color: white;
-  font-size: 19px;
-  font-weight: bold;
-  outline: 0;
-  width: 100%;
-  padding: 5px;
-}
-
-.name:focus {
-  border-bottom: 1px solid var(--accent);
-}
-
-.icon {
-  background: transparent;
-  color: var(--muted);
-  padding: 6px 9px;
-}
-
-.icon:hover {
-  color: #ff7777;
-}
-
-section {
-  padding: 16px;
-}
-
-section + section {
-  border-top: 1px solid var(--border);
-}
-
-.title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.title h2 {
-  font-size: 16px;
-  margin: 0;
-}
-
-.title span {
-  font-size: 12px;
-  color: var(--muted);
-}
+/* STATS */
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 9px;
+  grid-template-columns: repeat(2, minmax(130px, 1fr));
+  gap: 10px;
 }
 
-label {
+.stat {
+  background: #110e17;
+  border: 1px solid #3d2c4e;
+  border-radius: 9px;
+  padding: 10px;
+}
+
+.stat label {
   display: block;
-  color: var(--muted);
+  color: #bfaed0;
   font-size: 12px;
-  font-weight: bold;
+  margin-bottom: 5px;
 }
 
-input,
-textarea {
-  font: inherit;
+.stat input {
   width: 100%;
-  background: #0d1118;
+  background: #211a2c;
   color: white;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 9px;
-  outline: 0;
+  border: 1px solid #4a385b;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 18px;
 }
 
-input:focus,
-textarea:focus {
-  border-color: var(--accent);
+/* ABILITIES */
+
+.section-title {
+  margin: 22px 0 10px;
+  color: #c9a7ff;
 }
 
-.stats label {
-  text-align: center;
-}
-
-.stats input {
-  text-align: center;
-  font-weight: bold;
-  margin-top: 5px;
-}
-
-.small {
-  padding: 7px 10px;
-  font-size: 12px;
+.abilities {
+  display: grid;
+  gap: 10px;
 }
 
 .ability {
-  background: var(--card2);
-  border: 1px solid var(--border);
+  background: #120f18;
+  border: 1px solid #3d2c4e;
   border-radius: 10px;
   padding: 12px;
-  margin-bottom: 10px;
 }
 
-.ability-top {
-  display: flex;
-  gap: 7px;
-}
-
-.ability-top input {
-  font-weight: bold;
-}
-
-.fields {
+.ability-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1.2fr .7fr .9fr;
   gap: 8px;
-  margin-top: 9px;
 }
 
-.fields input {
-  margin-top: 5px;
+.ability input,
+.ability textarea {
+  width: 100%;
+  background: #211a2c;
+  color: white;
+  border: 1px solid #4a385b;
+  border-radius: 6px;
+  padding: 8px;
 }
 
-.desc {
-  margin-top: 9px;
-}
-
-.desc textarea {
-  margin-top: 5px;
+.ability textarea {
+  min-height: 65px;
   resize: vertical;
+  margin-top: 8px;
+}
+
+.ability-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
 }
 
 .empty {
   text-align: center;
-  border: 1px dashed var(--border);
-  border-radius: 15px;
-  padding: 65px 20px;
-  color: var(--muted);
+  color: #8e8298;
+  padding: 40px;
 }
 
-.empty h2 {
-  color: white;
-}
+/* MOBIEL */
 
-.empty .dice {
-  font-size: 50px;
-}
-
-footer {
-  text-align: center;
-  color: var(--muted);
-  font-size: 12px;
-  padding: 20px;
-}
-
-@media (max-width: 600px) {
-  header {
-    align-items: flex-start;
-    flex-direction: column;
+@media (max-width: 650px) {
+  .player-overview {
+    grid-template-columns: 1fr;
   }
 
-  .actions {
-    width: 100%;
+  .image-box {
+    margin: auto;
   }
 
-  .actions button {
-    flex: 1;
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
   }
 
-  .grid {
+  .ability-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -314,60 +268,57 @@ footer {
 <body>
 
 <header>
-  <div>
-    <h1>⚔️ DND For Us</h1>
-    <p>Players, stats & abilities</p>
-  </div>
 
-  <div class="actions">
-    <button id="add">＋ Player</button>
-    <button id="reset" class="danger">Reset</button>
-  </div>
+  <h1>⚔️ DND For Us</h1>
+
+  <button onclick="addPlayer()">
+    ＋ Player
+  </button>
+
+  <button onclick="resetAll()" class="danger">
+    Reset
+  </button>
+
 </header>
 
-<main>
 
-  <div id="notice" class="notice hidden">
-    Maximum van 5 players bereikt.
-  </div>
+<div class="container">
 
-  <div id="players" class="grid"></div>
+  <div id="players" class="players"></div>
 
-  <div id="empty" class="empty">
-    <div class="dice">🎲</div>
-    <h2>Nog geen players</h2>
-    <p>Voeg een player toe om te beginnen.</p>
-    <button id="first">＋ Eerste player</button>
-  </div>
-
-</main>
-
-<footer>
-  Je gegevens worden automatisch opgeslagen in deze browser.
-</footer>
+</div>
 
 
 <script>
 
-const KEY = "dnd-for-us-v1";
-const MAX = 5;
+const STORAGE_KEY = "dnd-for-us-v1";
 
-let players = load();
+const STAT_NAMES = [
+  "STR",
+  "DEX",
+  "CON",
+  "INT",
+  "WIS",
+  "CHA"
+];
+
+
+let players = loadPlayers();
 
 
 /* =========================
-   DATA OPSLAAN / LADEN
+   OPSLAAN / LADEN
 ========================= */
 
-function load() {
+function loadPlayers() {
 
   try {
 
     return JSON.parse(
-      localStorage.getItem(KEY)
+      localStorage.getItem(STORAGE_KEY)
     ) || [];
 
-  } catch (error) {
+  } catch (e) {
 
     return [];
 
@@ -379,32 +330,36 @@ function load() {
 function save() {
 
   localStorage.setItem(
-    KEY,
+    STORAGE_KEY,
     JSON.stringify(players)
   );
 
 }
 
 
-function generateId() {
-
-  return Date.now().toString(36)
-    + Math.random().toString(36).slice(2);
-
-}
-
-
 /* =========================
-   NIEUWE PLAYER
+   PLAYER TOEVOEGEN
 ========================= */
 
-function newPlayer() {
+function addPlayer() {
 
-  return {
+  if (players.length >= 5) {
 
-    id: generateId(),
+    alert(
+      "Je kunt maximaal 5 spelers toevoegen."
+    );
 
-    name: "Player " + (players.length + 1),
+    return;
+  }
+
+
+  players.push({
+
+    id: Date.now(),
+
+    name: "Nieuwe speler",
+
+    image: "",
 
     stats: {
 
@@ -419,660 +374,7 @@ function newPlayer() {
 
     abilities: []
 
-  };
-
-}
-
-
-/* =========================
-   NIEUWE ABILITY
-========================= */
-
-function newAbility() {
-
-  return {
-
-    id: generateId(),
-
-    name: "",
-
-    damage: "",
-
-    requirement: "",
-
-    description: ""
-
-  };
-
-}
-
-
-/* =========================
-   RENDER
-========================= */
-
-function render() {
-
-  const root =
-    document.getElementById("players");
-
-  root.innerHTML = "";
-
-  const empty =
-    document.getElementById("empty");
-
-  const notice =
-    document.getElementById("notice");
-
-  const addButton =
-    document.getElementById("add");
-
-  const firstButton =
-    document.getElementById("first");
-
-
-  empty.classList.toggle(
-    "hidden",
-    players.length > 0
-  );
-
-
-  notice.classList.toggle(
-    "hidden",
-    players.length < MAX
-  );
-
-
-  addButton.disabled =
-    players.length >= MAX;
-
-  firstButton.disabled =
-    players.length >= MAX;
-
-
-  players.forEach((player, playerIndex) => {
-
-    createPlayerCard(
-      player,
-      playerIndex,
-      root
-    );
-
   });
-
-}
-
-
-/* =========================
-   PLAYER CARD
-========================= */
-
-function createPlayerCard(
-  player,
-  playerIndex,
-  root
-) {
-
-  const card =
-    document.createElement("article");
-
-  card.className = "player";
-
-
-  /* HEADER */
-
-  const header =
-    document.createElement("div");
-
-  header.className = "player-head";
-
-
-  const number =
-    document.createElement("div");
-
-  number.className = "number";
-
-  number.textContent =
-    playerIndex + 1;
-
-
-  const name =
-    document.createElement("input");
-
-  name.className = "name";
-
-  name.value = player.name;
-
-  name.maxLength = 30;
-
-
-  name.oninput = function() {
-
-    player.name = name.value;
-
-    save();
-
-  };
-
-
-  const deleteButton =
-    document.createElement("button");
-
-  deleteButton.className = "icon";
-
-  deleteButton.textContent = "✕";
-
-  deleteButton.title =
-    "Player verwijderen";
-
-
-  deleteButton.onclick = function() {
-
-    if (
-      confirm(
-        "Deze player verwijderen?"
-      )
-    ) {
-
-      players =
-        players.filter(
-          p => p.id !== player.id
-        );
-
-      save();
-
-      render();
-
-    }
-
-  };
-
-
-  header.append(
-    number,
-    name,
-    deleteButton
-  );
-
-
-  card.append(header);
-
-
-  /* STATS */
-
-  createStatsSection(
-    card,
-    player
-  );
-
-
-  /* ABILITIES */
-
-  createAbilitiesSection(
-    card,
-    player
-  );
-
-
-  root.append(card);
-
-}
-
-
-/* =========================
-   STATS
-========================= */
-
-function createStatsSection(
-  card,
-  player
-) {
-
-  const section =
-    document.createElement("section");
-
-
-  const title =
-    document.createElement("div");
-
-  title.className = "title";
-
-
-  const heading =
-    document.createElement("h2");
-
-  heading.textContent =
-    "Stats";
-
-
-  const range =
-    document.createElement("span");
-
-  range.textContent =
-    "0 – 30";
-
-
-  title.append(
-    heading,
-    range
-  );
-
-
-  section.append(title);
-
-
-  const stats =
-    document.createElement("div");
-
-  stats.className = "stats";
-
-
-  const statNames = [
-    "STR",
-    "DEX",
-    "CON",
-    "INT",
-    "WIS",
-    "CHA"
-  ];
-
-
-  statNames.forEach(
-    stat => {
-
-      const label =
-        document.createElement("label");
-
-      label.textContent =
-        stat;
-
-
-      const input =
-        document.createElement("input");
-
-      input.type = "number";
-
-      input.min = 0;
-
-      input.max = 30;
-
-      input.value =
-        player.stats[stat];
-
-
-      input.oninput = function() {
-
-        let value =
-          Number(input.value) || 0;
-
-        value =
-          Math.max(
-            0,
-            Math.min(30, value)
-          );
-
-        input.value = value;
-
-        player.stats[stat] =
-          value;
-
-        save();
-
-      };
-
-
-      label.append(input);
-
-      stats.append(label);
-
-    }
-  );
-
-
-  section.append(stats);
-
-  card.append(section);
-
-}
-
-
-/* =========================
-   ABILITIES
-========================= */
-
-function createAbilitiesSection(
-  card,
-  player
-) {
-
-  const section =
-    document.createElement("section");
-
-
-  const title =
-    document.createElement("div");
-
-  title.className = "title";
-
-
-  const heading =
-    document.createElement("h2");
-
-  heading.textContent =
-    "Abilities / Moves";
-
-
-  const addButton =
-    document.createElement("button");
-
-  addButton.className =
-    "small";
-
-  addButton.textContent =
-    "＋ Ability";
-
-
-  addButton.onclick =
-    function() {
-
-      player.abilities.push(
-        newAbility()
-      );
-
-      save();
-
-      render();
-
-    };
-
-
-  title.append(
-    heading,
-    addButton
-  );
-
-
-  section.append(title);
-
-
-  if (
-    player.abilities.length === 0
-  ) {
-
-    const empty =
-      document.createElement("div");
-
-    empty.style =
-      "color:var(--muted);text-align:center;font-size:13px;padding:8px";
-
-    empty.textContent =
-      "Nog geen abilities toegevoegd.";
-
-    section.append(empty);
-
-  }
-
-
-  player.abilities.forEach(
-    ability => {
-
-      createAbility(
-        section,
-        player,
-        ability
-      );
-
-    }
-  );
-
-
-  card.append(section);
-
-}
-
-
-/* =========================
-   ABILITY
-========================= */
-
-function createAbility(
-  section,
-  player,
-  ability
-) {
-
-  const box =
-    document.createElement("div");
-
-  box.className = "ability";
-
-
-  /* NAAM */
-
-  const top =
-    document.createElement("div");
-
-  top.className =
-    "ability-top";
-
-
-  const name =
-    document.createElement("input");
-
-  name.placeholder =
-    "Ability naam";
-
-  name.value =
-    ability.name;
-
-
-  name.oninput =
-    function() {
-
-      ability.name =
-        name.value;
-
-      save();
-
-    };
-
-
-  const remove =
-    document.createElement("button");
-
-  remove.className =
-    "icon";
-
-  remove.textContent =
-    "✕";
-
-
-  remove.onclick =
-    function() {
-
-      player.abilities =
-        player.abilities.filter(
-          a => a.id !== ability.id
-        );
-
-      save();
-
-      render();
-
-    };
-
-
-  top.append(
-    name,
-    remove
-  );
-
-
-  box.append(top);
-
-
-  /* DAMAGE + REQUIREMENT */
-
-  const fields =
-    document.createElement("div");
-
-  fields.className =
-    "fields";
-
-
-  const damage =
-    createField(
-      "Damage",
-      "Bijv. 2d6 + 3",
-      ability.damage
-    );
-
-
-  damage.input.oninput =
-    function() {
-
-      ability.damage =
-        damage.input.value;
-
-      save();
-
-    };
-
-
-  const requirement =
-    createField(
-      "Requirement",
-      "Bijv. STR 10",
-      ability.requirement
-    );
-
-
-  requirement.input.oninput =
-    function() {
-
-      ability.requirement =
-        requirement.input.value;
-
-      save();
-
-    };
-
-
-  fields.append(
-    damage.wrapper,
-    requirement.wrapper
-  );
-
-
-  box.append(fields);
-
-
-  /* DESCRIPTION */
-
-  const descriptionLabel =
-    document.createElement("label");
-
-  descriptionLabel.className =
-    "desc";
-
-  descriptionLabel.textContent =
-    "Beschrijving";
-
-
-  const description =
-    document.createElement("textarea");
-
-  description.rows = 2;
-
-  description.placeholder =
-    "Wat doet deze ability?";
-
-  description.value =
-    ability.description;
-
-
-  description.oninput =
-    function() {
-
-      ability.description =
-        description.value;
-
-      save();
-
-    };
-
-
-  descriptionLabel.append(
-    description
-  );
-
-
-  box.append(
-    descriptionLabel
-  );
-
-
-  section.append(box);
-
-}
-
-
-/* =========================
-   FIELD HELPER
-========================= */
-
-function createField(
-  title,
-  placeholder,
-  value
-) {
-
-  const wrapper =
-    document.createElement("label");
-
-  wrapper.textContent =
-    title;
-
-
-  const input =
-    document.createElement("input");
-
-  input.placeholder =
-    placeholder;
-
-  input.value =
-    value;
-
-
-  wrapper.append(input);
-
-
-  return {
-    wrapper,
-    input
-  };
-
-}
-
-
-/* =========================
-   PLAYER TOEVOEGEN
-========================= */
-
-function addPlayer() {
-
-  if (
-    players.length >= MAX
-  ) {
-
-    return;
-
-  }
-
-
-  players.push(
-    newPlayer()
-  );
 
 
   save();
@@ -1083,41 +385,881 @@ function addPlayer() {
 
 
 /* =========================
-   BUTTONS
+   PLAYER VERWIJDEREN
 ========================= */
 
-document
-  .getElementById("add")
-  .onclick =
-  addPlayer;
+function deletePlayer(id) {
+
+  if (
+    !confirm(
+      "Deze speler verwijderen?"
+    )
+  ) {
+
+    return;
+
+  }
 
 
-document
-  .getElementById("first")
-  .onclick =
-  addPlayer;
+  players =
+    players.filter(
+      p => p.id !== id
+    );
 
 
-document
-  .getElementById("reset")
-  .onclick =
-  function() {
+  save();
 
-    if (
-      confirm(
-        "Alles verwijderen?"
-      )
-    ) {
+  render();
 
-      players = [];
+}
 
-      save();
+
+/* =========================
+   ALLES RESETTEN
+========================= */
+
+function resetAll() {
+
+  if (
+    !confirm(
+      "Alles verwijderen?"
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  players = [];
+
+  save();
+
+  render();
+
+}
+
+
+/* =========================
+   PLAYER UPDATEN
+========================= */
+
+function updatePlayer(
+  id,
+  callback
+) {
+
+  const player =
+    players.find(
+      p => p.id === id
+    );
+
+
+  if (!player) {
+
+    return;
+
+  }
+
+
+  callback(player);
+
+  save();
+
+}
+
+
+/* =========================
+   MOVE TOEVOEGEN
+========================= */
+
+function addAbility(playerId) {
+
+  updatePlayer(
+    playerId,
+    p => {
+
+      p.abilities.push({
+
+        id: Date.now(),
+
+        name: "Nieuwe move",
+
+        damage: "0",
+
+        requirement: "Geen",
+
+        description: ""
+
+      });
+
+    }
+  );
+
+
+  render();
+
+}
+
+
+/* =========================
+   MOVE VERWIJDEREN
+========================= */
+
+function deleteAbility(
+  playerId,
+  abilityId
+) {
+
+  updatePlayer(
+    playerId,
+    p => {
+
+      p.abilities =
+        p.abilities.filter(
+          a => a.id !== abilityId
+        );
+
+    }
+  );
+
+
+  render();
+
+}
+
+
+/* =========================
+   AFBEELDING KLEINER MAKEN
+========================= */
+
+function compressImage(
+  file,
+  callback
+) {
+
+  const reader =
+    new FileReader();
+
+
+  reader.onload = function(e) {
+
+    const img =
+      new Image();
+
+
+    img.onload = function() {
+
+      const maxSize = 500;
+
+      let width =
+        img.width;
+
+      let height =
+        img.height;
+
+
+      if (width > height) {
+
+        if (width > maxSize) {
+
+          height =
+            Math.round(
+              height *
+              maxSize /
+              width
+            );
+
+          width = maxSize;
+
+        }
+
+      } else {
+
+        if (height > maxSize) {
+
+          width =
+            Math.round(
+              width *
+              maxSize /
+              height
+            );
+
+          height = maxSize;
+
+        }
+
+      }
+
+
+      const canvas =
+        document.createElement(
+          "canvas"
+        );
+
+
+      canvas.width = width;
+
+      canvas.height = height;
+
+
+      const ctx =
+        canvas.getContext(
+          "2d"
+        );
+
+
+      ctx.drawImage(
+        img,
+        0,
+        0,
+        width,
+        height
+      );
+
+
+      callback(
+        canvas.toDataURL(
+          "image/jpeg",
+          0.82
+        )
+      );
+
+    };
+
+
+    img.src = e.target.result;
+
+  };
+
+
+  reader.readAsDataURL(file);
+
+}
+
+
+/* =========================
+   AFBEELDING UPLOADEN
+========================= */
+
+function handleImageUpload(
+  playerId,
+  input
+) {
+
+  const file =
+    input.files[0];
+
+
+  if (!file) {
+
+    return;
+
+  }
+
+
+  if (
+    !file.type.startsWith(
+      "image/"
+    )
+  ) {
+
+    alert(
+      "Kies een afbeelding."
+    );
+
+    return;
+
+  }
+
+
+  compressImage(
+    file,
+    function(dataUrl) {
+
+      updatePlayer(
+        playerId,
+        p => {
+
+          p.image = dataUrl;
+
+        }
+      );
+
 
       render();
 
     }
+  );
 
-  };
+}
+
+
+/* =========================
+   AFBEELDING VERWIJDEREN
+========================= */
+
+function removeImage(
+  playerId
+) {
+
+  updatePlayer(
+    playerId,
+    p => {
+
+      p.image = "";
+
+    }
+  );
+
+
+  render();
+
+}
+
+
+/* =========================
+   HTML VEILIG MAKEN
+========================= */
+
+function escapeHtml(value) {
+
+  return String(value ?? "")
+
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
+
+}
+
+
+/* =========================
+   PAGINA TEKENEN
+========================= */
+
+function render() {
+
+  const container =
+    document.getElementById(
+      "players"
+    );
+
+
+  if (players.length === 0) {
+
+    container.innerHTML = `
+
+      <div class="empty">
+
+        Nog geen spelers.
+
+        <br><br>
+
+        Klik op
+        <b>＋ Player</b>
+        om te beginnen.
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+
+    players.map(
+      player => `
+
+      <div class="player">
+
+
+        <!-- PLAYER NAAM -->
+
+        <div class="player-header">
+
+          <input
+
+            value="${escapeHtml(
+              player.name
+            )}"
+
+            onchange="
+
+              updatePlayer(
+                ${player.id},
+                p => p.name =
+                this.value
+              )
+
+            "
+
+            aria-label="Speler naam"
+
+          >
+
+
+          <button
+
+            class="danger small"
+
+            onclick="
+              deletePlayer(
+                ${player.id}
+              )
+            "
+
+          >
+
+            Verwijder
+
+          </button>
+
+        </div>
+
+
+
+        <!-- PLAATJE + STATS -->
+
+        <div class="player-overview">
+
+
+          <!-- AFBEELDING -->
+
+          <div class="image-box">
+
+
+            ${
+              player.image
+
+              ?
+
+              `
+
+              <img
+
+                class="character-image"
+
+                src="${player.image}"
+
+                alt="Karakter afbeelding"
+
+              >
+
+              `
+
+              :
+
+              `
+
+              <div class="image-placeholder">
+
+                🧙
+
+              </div>
+
+              `
+
+            }
+
+
+            <div class="image-controls">
+
+
+              <label class="file-label">
+
+                📷 Kies afbeelding
+
+                <input
+
+                  class="file-input"
+
+                  type="file"
+
+                  accept="image/*"
+
+                  onchange="
+                    handleImageUpload(
+                      ${player.id},
+                      this
+                    )
+                  "
+
+                >
+
+              </label>
+
+
+              ${
+                player.image
+
+                ?
+
+                `
+
+                <button
+
+                  class="small danger"
+
+                  onclick="
+                    removeImage(
+                      ${player.id}
+                    )
+                  "
+
+                >
+
+                  Verwijder foto
+
+                </button>
+
+                `
+
+                :
+
+                ""
+
+              }
+
+
+            </div>
+
+          </div>
+
+
+
+          <!-- STATS -->
+
+          <div class="stats">
+
+
+            ${
+
+              STAT_NAMES.map(
+
+                stat => `
+
+                <div class="stat">
+
+                  <label>
+
+                    ${stat}
+
+                  </label>
+
+
+                  <input
+
+                    type="number"
+
+                    value="${
+                      Number(
+                        player.stats[stat]
+                      ) || 0
+                    }"
+
+                    onchange="
+
+                      updatePlayer(
+                        ${player.id},
+
+                        p =>
+
+                        p.stats.${stat}
+                        =
+                        Number(
+                          this.value
+                        ) || 0
+
+                      )
+
+                    "
+
+                  >
+
+                </div>
+
+                `
+
+              ).join("")
+
+            }
+
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ABILITIES -->
+
+        <h3 class="section-title">
+
+          ⚔️ Abilities / Moves
+
+        </h3>
+
+
+        <div class="abilities">
+
+
+          ${
+
+            player.abilities.length
+
+            ?
+
+            player.abilities.map(
+
+              ability => `
+
+              <div class="ability">
+
+
+                <div class="ability-grid">
+
+
+                  <!-- NAAM -->
+
+                  <input
+
+                    placeholder="Naam"
+
+                    value="${escapeHtml(
+                      ability.name
+                    )}"
+
+                    onchange="
+
+                      updatePlayer(
+
+                        ${player.id},
+
+                        p =>
+
+                        p.abilities
+                        .find(
+                          a =>
+                          a.id ===
+                          ${ability.id}
+                        )
+                        .name =
+                        this.value
+
+                      )
+
+                    "
+
+                  >
+
+
+                  <!-- DAMAGE -->
+
+                  <input
+
+                    placeholder="Damage"
+
+                    value="${escapeHtml(
+                      ability.damage
+                    )}"
+
+                    onchange="
+
+                      updatePlayer(
+
+                        ${player.id},
+
+                        p =>
+
+                        p.abilities
+                        .find(
+                          a =>
+                          a.id ===
+                          ${ability.id}
+                        )
+                        .damage =
+                        this.value
+
+                      )
+
+                    "
+
+                  >
+
+
+                  <!-- REQUIREMENT -->
+
+                  <input
+
+                    placeholder="Requirement"
+
+                    value="${escapeHtml(
+                      ability.requirement
+                    )}"
+
+                    onchange="
+
+                      updatePlayer(
+
+                        ${player.id},
+
+                        p =>
+
+                        p.abilities
+                        .find(
+                          a =>
+                          a.id ===
+                          ${ability.id}
+                        )
+                        .requirement =
+                        this.value
+
+                      )
+
+                    "
+
+                  >
+
+                </div>
+
+
+
+                <!-- BESCHRIJVING -->
+
+                <textarea
+
+                  placeholder="Kleine beschrijving..."
+
+                  onchange="
+
+                    updatePlayer(
+
+                      ${player.id},
+
+                      p =>
+
+                      p.abilities
+                      .find(
+                        a =>
+                        a.id ===
+                        ${ability.id}
+                      )
+                      .description =
+                      this.value
+
+                    )
+
+                  "
+
+                >${escapeHtml(
+                  ability.description
+                )}</textarea>
+
+
+
+                <!-- MOVE VERWIJDEREN -->
+
+                <div class="ability-actions">
+
+                  <button
+
+                    class="danger small"
+
+                    onclick="
+
+                      deleteAbility(
+
+                        ${player.id},
+
+                        ${ability.id}
+
+                      )
+
+                    "
+
+                  >
+
+                    Verwijder move
+
+                  </button>
+
+                </div>
+
+
+              </div>
+
+              `
+
+            ).join("")
+
+            :
+
+            `
+
+            <div
+              style="color:#8e8298"
+            >
+
+              Nog geen moves.
+
+            </div>
+
+            `
+
+          }
+
+
+        </div>
+
+
+        <br>
+
+
+        <button
+
+          onclick="
+            addAbility(
+              ${player.id}
+            )
+          "
+
+        >
+
+          ＋ Move / Ability
+
+        </button>
+
+
+      </div>
+
+      `
+    ).join("");
+
+}
 
 
 /* =========================
