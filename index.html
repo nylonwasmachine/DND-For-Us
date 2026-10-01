@@ -941,6 +941,34 @@ async function joinParty() {
   await loadParty();
 }
 
+async function startParty() {
+  if (!currentParty || !currentUser) return;
+
+  if (currentParty.dm_id !== currentUser.id) {
+    alert("Alleen de DM kan de party starten.");
+    return;
+  }
+
+  if (currentParty.status === "started") return;
+
+  const { data, error } = await supabaseClient
+    .from("parties")
+    .update({ status: "started" })
+    .eq("id", currentParty.id)
+    .eq("dm_id", currentUser.id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error(error);
+    alert("Party starten mislukt: " + error.message);
+    return;
+  }
+
+  currentParty = data;
+  renderPartyPanel();
+}
+
 async function leaveParty() {
   if (!currentParty) return;
 
@@ -1036,19 +1064,63 @@ function renderPartyPanel() {
   }
 
   const memberNames = currentPartyMembers.length
-    ? currentPartyMembers.map(m => `<div>• ${escapeHtml(m.username)}${m.role === "DM" ? " 👑" : ""}</div>`).join("")
+    ? currentPartyMembers.map(m =>
+        `<div>• ${escapeHtml(m.username)}${m.role === "DM" ? " 👑" : ""}</div>`
+      ).join("")
     : "<div>Geen leden gevonden.</div>";
 
   const isDM = currentParty.dm_id === currentUser.id;
+  const started = currentParty.status === "started";
 
   panel.innerHTML = `
     <h2>⚔️ ${escapeHtml(currentParty.name)}</h2>
+
+    <div style="
+      display:inline-block;
+      margin:8px 0 12px;
+      padding:7px 11px;
+      border-radius:8px;
+      background:${started ? "#244b32" : "#3d2860"};
+      color:${started ? "#b8ffc9" : "#d8bdff"};
+      font-weight:bold;
+    ">
+      ${started ? "🟢 Party gestart" : "🕐 Wacht op de DM"}
+    </div>
+
     <div>Join-code:<span class="party-code">${escapeHtml(currentParty.join_code)}</span></div>
-    <div class="party-members"><strong>👥 Leden</strong>${memberNames}</div>
-    ${!isDM ? '<button class="danger" style="margin-top:15px" onclick="leaveParty()">Party verlaten</button>' : ""}
-    <div style="color:#8e8298;margin-top:10px">${isDM ? "Je bent de DM. Deel de join-code met je spelers." : "Je bent lid van deze party."}</div>
+
+    <div class="party-members">
+      <strong>👥 Leden</strong>
+      ${memberNames}
+    </div>
+
+    ${isDM && !started
+      ? `<button style="margin-top:15px" onclick="startParty()">▶️ Start Party</button>`
+      : ""}
+
+    ${!isDM
+      ? '<button class="danger" style="margin-top:15px" onclick="leaveParty()">Party verlaten</button>'
+      : ""}
+
+    <div style="color:#8e8298;margin-top:10px">
+      ${started
+        ? "🎲 De D&D-sessie is gestart!"
+        : isDM
+          ? "Wacht tot alle spelers klaar zijn en start daarna de party."
+          : "Wacht tot de DM de party start."}
+    </div>
   `;
 }
+/* =========================
+   PARTY STATUS REFRESH
+========================= */
+
+setInterval(() => {
+  if (currentUser && currentParty) {
+    loadParty();
+  }
+}, 5000);
+
 
 
 /* =========================
