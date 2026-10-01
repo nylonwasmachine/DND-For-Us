@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DND For Us</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 * {
   box-sizing: border-box;
@@ -14,7 +16,94 @@ body {
   margin: 0;
   font-family: Arial, sans-serif;
   background: #100d18;
-  color: #eee;
+  color: white;
+}
+
+/* =========================
+   LOGIN
+========================= */
+
+#authPage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.auth-box {
+  width: 100%;
+  max-width: 420px;
+  background: #1a1523;
+  border: 1px solid #3a2a4c;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 10px 40px #0008;
+}
+
+.auth-box h1 {
+  text-align: center;
+  color: #c9a7ff;
+  margin-top: 0;
+}
+
+.auth-box h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.auth-box input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid #49365d;
+  background: #0f0c15;
+  color: white;
+  font-size: 15px;
+}
+
+.auth-box button {
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #6d3bb5;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 5px;
+}
+
+.auth-box button:hover {
+  background: #824bd0;
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: 18px;
+  color: #aaa;
+}
+
+.auth-switch button {
+  width: auto;
+  background: none;
+  color: #c9a7ff;
+  padding: 0;
+}
+
+#authMessage {
+  text-align: center;
+  margin-top: 15px;
+  color: #ffb3b3;
+}
+
+/* =========================
+   APP
+========================= */
+
+#app {
+  display: none;
 }
 
 header {
@@ -52,6 +141,21 @@ button.small {
   font-size: 12px;
 }
 
+.user-info {
+  margin-bottom: 15px;
+  color: #aaa;
+}
+
+.role {
+  display: inline-block;
+  background: #3d2860;
+  color: #d8bdff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-left: 5px;
+}
+
 .container {
   max-width: 1100px;
   margin: 20px auto;
@@ -68,10 +172,7 @@ button.small {
   border: 1px solid #3a2a4c;
   border-radius: 14px;
   padding: 18px;
-  box-shadow: 0 8px 25px #0004;
 }
-
-/* PLAYER NAAM */
 
 .player-header {
   display: flex;
@@ -91,16 +192,11 @@ button.small {
   padding: 10px;
 }
 
-/* PLAATJE + STATS */
-
 .player-overview {
   display: grid;
   grid-template-columns: 170px 1fr;
   gap: 20px;
-  align-items: start;
 }
-
-/* AFBEELDING */
 
 .image-box {
   text-align: center;
@@ -128,41 +224,28 @@ button.small {
   justify-content: center;
   margin: auto;
   font-size: 46px;
-  color: #6f607d;
 }
 
 .image-controls {
   margin-top: 10px;
-  display: flex;
-  justify-content: center;
-  gap: 7px;
-  flex-wrap: wrap;
 }
 
 .file-label {
   display: inline-block;
   background: #6d3bb5;
-  color: white;
+  padding: 8px;
   border-radius: 8px;
-  padding: 8px 10px;
   font-size: 12px;
-  font-weight: bold;
   cursor: pointer;
-}
-
-.file-label:hover {
-  background: #824bd0;
 }
 
 .file-input {
   display: none;
 }
 
-/* STATS */
-
 .stats {
   display: grid;
-  grid-template-columns: repeat(2, minmax(130px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
 
@@ -190,10 +273,7 @@ button.small {
   font-size: 18px;
 }
 
-/* ABILITIES */
-
 .section-title {
-  margin: 22px 0 10px;
   color: #c9a7ff;
 }
 
@@ -227,14 +307,8 @@ button.small {
 
 .ability textarea {
   min-height: 65px;
+  margin-top: 8px;
   resize: vertical;
-  margin-top: 8px;
-}
-
-.ability-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 8px;
 }
 
 .empty {
@@ -243,15 +317,9 @@ button.small {
   padding: 40px;
 }
 
-/* MOBIEL */
-
-@media (max-width: 650px) {
+@media(max-width:650px) {
   .player-overview {
     grid-template-columns: 1fr;
-  }
-
-  .image-box {
-    margin: auto;
   }
 
   .stats {
@@ -267,16 +335,93 @@ button.small {
 
 <body>
 
+<!-- =========================
+     LOGIN / REGISTER
+========================= -->
+
+<div id="authPage">
+
+  <div class="auth-box">
+
+    <h1>⚔️ DND For Us</h1>
+
+    <h2 id="authTitle">Inloggen</h2>
+
+    <input
+      id="username"
+      type="text"
+      placeholder="Username"
+      style="display:none"
+    >
+
+    <input
+      id="email"
+      type="email"
+      placeholder="Email"
+    >
+
+    <input
+      id="password"
+      type="password"
+      placeholder="Wachtwoord"
+    >
+
+    <button onclick="handleAuth()">
+      <span id="authButtonText">Inloggen</span>
+    </button>
+
+    <div id="authMessage"></div>
+
+    <div class="auth-switch">
+
+      <span id="switchText">
+        Nog geen account?
+      </span>
+
+      <button onclick="toggleAuthMode()">
+        <span id="switchButton">
+          Account maken
+        </span>
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================
+     APP
+========================= -->
+
+<div id="app">
+
 <header>
 
   <h1>⚔️ DND For Us</h1>
+
+  <div class="user-info">
+
+    Ingelogd als
+    <b id="currentUsername"></b>
+
+    <span
+      class="role"
+      id="currentRole"
+    ></span>
+
+  </div>
 
   <button onclick="addPlayer()">
     ＋ Player
   </button>
 
-  <button onclick="resetAll()" class="danger">
-    Reset
+  <button
+    onclick="logout()"
+    class="danger"
+  >
+    Uitloggen
   </button>
 
 </header>
@@ -284,14 +429,421 @@ button.small {
 
 <div class="container">
 
-  <div id="players" class="players"></div>
+  <div
+    id="players"
+    class="players"
+  ></div>
+
+</div>
 
 </div>
 
 
 <script>
 
-const STORAGE_KEY = "dnd-for-us-v1";
+/* =========================
+   SUPABASE
+========================= */
+
+const SUPABASE_URL =
+  "https://smrmzoljzglgqzdjvqjl.supabase.co";
+
+const SUPABASE_KEY =
+  "JOUW_ANON_KEY_HIER";
+
+
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+/* =========================
+   AUTH
+========================= */
+
+let registerMode = false;
+
+let currentUser = null;
+
+let currentProfile = null;
+
+
+/* =========================
+   AUTH MODE
+========================= */
+
+function toggleAuthMode() {
+
+  registerMode =
+    !registerMode;
+
+
+  const title =
+    document.getElementById(
+      "authTitle"
+    );
+
+  const username =
+    document.getElementById(
+      "username"
+    );
+
+  const button =
+    document.getElementById(
+      "authButtonText"
+    );
+
+  const switchText =
+    document.getElementById(
+      "switchText"
+    );
+
+  const switchButton =
+    document.getElementById(
+      "switchButton"
+    );
+
+
+  if(registerMode) {
+
+    title.textContent =
+      "Account maken";
+
+    username.style.display =
+      "block";
+
+    button.textContent =
+      "Account maken";
+
+    switchText.textContent =
+      "Heb je al een account?";
+
+    switchButton.textContent =
+      "Inloggen";
+
+  } else {
+
+    title.textContent =
+      "Inloggen";
+
+    username.style.display =
+      "none";
+
+    button.textContent =
+      "Inloggen";
+
+    switchText.textContent =
+      "Nog geen account?";
+
+    switchButton.textContent =
+      "Account maken";
+
+  }
+
+}
+
+
+/* =========================
+   REGISTER / LOGIN
+========================= */
+
+async function handleAuth() {
+
+  const email =
+    document
+      .getElementById("email")
+      .value
+      .trim();
+
+  const password =
+    document
+      .getElementById("password")
+      .value;
+
+  const username =
+    document
+      .getElementById("username")
+      .value
+      .trim();
+
+
+  const message =
+    document.getElementById(
+      "authMessage"
+    );
+
+
+  message.textContent =
+    "Even bezig...";
+
+
+  if(!email || !password) {
+
+    message.textContent =
+      "Vul email en wachtwoord in.";
+
+    return;
+
+  }
+
+
+  if(registerMode) {
+
+    if(!username) {
+
+      message.textContent =
+        "Vul een username in.";
+
+      return;
+
+    }
+
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient.auth.signUp({
+
+        email: email,
+
+        password: password,
+
+        options: {
+
+          data: {
+
+            username:
+              username
+
+          }
+
+        }
+
+      });
+
+
+    if(error) {
+
+      message.textContent =
+        error.message;
+
+      return;
+
+    }
+
+
+    message.style.color =
+      "#9dffb0";
+
+    message.textContent =
+      "Account aangemaakt! Controleer eventueel je email.";
+
+  } else {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient.auth.signInWithPassword({
+
+        email: email,
+
+        password: password
+
+      });
+
+
+    if(error) {
+
+      message.style.color =
+        "#ffb3b3";
+
+      message.textContent =
+        error.message;
+
+      return;
+
+    }
+
+
+    await loadUser();
+
+  }
+
+}
+
+
+/* =========================
+   USER LADEN
+========================= */
+
+async function loadUser() {
+
+  const {
+    data: {
+      user
+    }
+  } =
+    await supabaseClient.auth.getUser();
+
+
+  if(!user) {
+
+    showAuth();
+
+    return;
+
+  }
+
+
+  currentUser =
+    user;
+
+
+  const {
+    data: profile,
+    error
+  } =
+    await supabaseClient
+
+      .from("profiles")
+
+      .select("*")
+
+      .eq("id", user.id)
+
+      .single();
+
+
+  if(error) {
+
+    console.error(error);
+
+    return;
+
+  }
+
+
+  currentProfile =
+    profile;
+
+
+  document
+    .getElementById(
+      "currentUsername"
+    )
+    .textContent =
+      profile.username;
+
+
+  document
+    .getElementById(
+      "currentRole"
+    )
+    .textContent =
+      profile.role;
+
+
+  showApp();
+
+}
+
+
+/* =========================
+   PAGINA TONEN
+========================= */
+
+function showApp() {
+
+  document
+    .getElementById(
+      "authPage"
+    )
+    .style.display =
+      "none";
+
+
+  document
+    .getElementById(
+      "app"
+    )
+    .style.display =
+      "block";
+
+
+  render();
+
+}
+
+
+function showAuth() {
+
+  document
+    .getElementById(
+      "authPage"
+    )
+    .style.display =
+      "flex";
+
+
+  document
+    .getElementById(
+      "app"
+    )
+    .style.display =
+      "none";
+
+}
+
+
+/* =========================
+   LOGOUT
+========================= */
+
+async function logout() {
+
+  await supabaseClient.auth.signOut();
+
+  currentUser = null;
+
+  currentProfile = null;
+
+  showAuth();
+
+}
+
+
+/* =========================
+   AUTH STATE
+========================= */
+
+supabaseClient.auth.onAuthStateChange(
+  async (event, session) => {
+
+    if(session) {
+
+      await loadUser();
+
+    } else {
+
+      showAuth();
+
+    }
+
+  }
+);
+
+
+/* =========================
+   CHARACTER DATA
+   VOORLOPIG LOKAAL
+========================= */
+
+const STORAGE_KEY =
+  "dnd-for-us-v1";
 
 const STAT_NAMES = [
   "STR",
@@ -303,28 +855,12 @@ const STAT_NAMES = [
 ];
 
 
-let players = loadPlayers();
-
-
-/* =========================
-   OPSLAAN / LADEN
-========================= */
-
-function loadPlayers() {
-
-  try {
-
-    return JSON.parse(
-      localStorage.getItem(STORAGE_KEY)
-    ) || [];
-
-  } catch (e) {
-
-    return [];
-
-  }
-
-}
+let players =
+  JSON.parse(
+    localStorage.getItem(
+      STORAGE_KEY
+    )
+  ) || [];
 
 
 function save() {
@@ -338,18 +874,19 @@ function save() {
 
 
 /* =========================
-   PLAYER TOEVOEGEN
+   PLAYER
 ========================= */
 
 function addPlayer() {
 
-  if (players.length >= 5) {
+  if(players.length >= 5) {
 
     alert(
-      "Je kunt maximaal 5 spelers toevoegen."
+      "Maximaal 5 spelers."
     );
 
     return;
+
   }
 
 
@@ -384,21 +921,13 @@ function addPlayer() {
 }
 
 
-/* =========================
-   PLAYER VERWIJDEREN
-========================= */
-
 function deletePlayer(id) {
 
-  if (
+  if(
     !confirm(
       "Deze speler verwijderen?"
     )
-  ) {
-
-    return;
-
-  }
+  ) return;
 
 
   players =
@@ -415,114 +944,59 @@ function deletePlayer(id) {
 
 
 /* =========================
-   ALLES RESETTEN
+   MOVES
 ========================= */
 
-function resetAll() {
-
-  if (
-    !confirm(
-      "Alles verwijderen?"
-    )
-  ) {
-
-    return;
-
-  }
-
-
-  players = [];
-
-  save();
-
-  render();
-
-}
-
-
-/* =========================
-   PLAYER UPDATEN
-========================= */
-
-function updatePlayer(
-  id,
-  callback
+function addAbility(
+  playerId
 ) {
 
   const player =
     players.find(
-      p => p.id === id
+      p => p.id === playerId
     );
 
 
-  if (!player) {
+  player.abilities.push({
 
-    return;
+    id: Date.now(),
 
-  }
+    name: "Nieuwe move",
 
+    damage: "0",
 
-  callback(player);
+    requirement: "Geen",
+
+    description: ""
+
+  });
+
 
   save();
-
-}
-
-
-/* =========================
-   MOVE TOEVOEGEN
-========================= */
-
-function addAbility(playerId) {
-
-  updatePlayer(
-    playerId,
-    p => {
-
-      p.abilities.push({
-
-        id: Date.now(),
-
-        name: "Nieuwe move",
-
-        damage: "0",
-
-        requirement: "Geen",
-
-        description: ""
-
-      });
-
-    }
-  );
-
 
   render();
 
 }
 
-
-/* =========================
-   MOVE VERWIJDEREN
-========================= */
 
 function deleteAbility(
   playerId,
   abilityId
 ) {
 
-  updatePlayer(
-    playerId,
-    p => {
+  const player =
+    players.find(
+      p => p.id === playerId
+    );
 
-      p.abilities =
-        p.abilities.filter(
-          a => a.id !== abilityId
-        );
 
-    }
-  );
+  player.abilities =
+    player.abilities.filter(
+      a => a.id !== abilityId
+    );
 
+
+  save();
 
   render();
 
@@ -530,7 +1004,7 @@ function deleteAbility(
 
 
 /* =========================
-   AFBEELDING KLEINER MAKEN
+   IMAGE
 ========================= */
 
 function compressImage(
@@ -542,105 +1016,85 @@ function compressImage(
     new FileReader();
 
 
-  reader.onload = function(e) {
+  reader.onload =
+    function(e) {
 
-    const img =
-      new Image();
-
-
-    img.onload = function() {
-
-      const maxSize = 500;
-
-      let width =
-        img.width;
-
-      let height =
-        img.height;
+      const img =
+        new Image();
 
 
-      if (width > height) {
+      img.onload =
+        function() {
 
-        if (width > maxSize) {
+          const max =
+            500;
 
-          height =
-            Math.round(
-              height *
-              maxSize /
-              width
+          let width =
+            img.width;
+
+          let height =
+            img.height;
+
+
+          if(width > max) {
+
+            height =
+              Math.round(
+                height *
+                max /
+                width
+              );
+
+            width =
+              max;
+
+          }
+
+
+          const canvas =
+            document.createElement(
+              "canvas"
             );
 
-          width = maxSize;
 
-        }
+          canvas.width =
+            width;
 
-      } else {
+          canvas.height =
+            height;
 
-        if (height > maxSize) {
 
-          width =
-            Math.round(
-              width *
-              maxSize /
+          canvas
+            .getContext("2d")
+            .drawImage(
+              img,
+              0,
+              0,
+              width,
               height
             );
 
-          height = maxSize;
 
-        }
+          callback(
+            canvas.toDataURL(
+              "image/jpeg",
+              0.82
+            )
+          );
 
-      }
-
-
-      const canvas =
-        document.createElement(
-          "canvas"
-        );
+        };
 
 
-      canvas.width = width;
-
-      canvas.height = height;
-
-
-      const ctx =
-        canvas.getContext(
-          "2d"
-        );
-
-
-      ctx.drawImage(
-        img,
-        0,
-        0,
-        width,
-        height
-      );
-
-
-      callback(
-        canvas.toDataURL(
-          "image/jpeg",
-          0.82
-        )
-      );
+      img.src =
+        e.target.result;
 
     };
-
-
-    img.src = e.target.result;
-
-  };
 
 
   reader.readAsDataURL(file);
 
 }
 
-
-/* =========================
-   AFBEELDING UPLOADEN
-========================= */
 
 function handleImageUpload(
   playerId,
@@ -651,41 +1105,24 @@ function handleImageUpload(
     input.files[0];
 
 
-  if (!file) {
-
-    return;
-
-  }
-
-
-  if (
-    !file.type.startsWith(
-      "image/"
-    )
-  ) {
-
-    alert(
-      "Kies een afbeelding."
-    );
-
-    return;
-
-  }
+  if(!file) return;
 
 
   compressImage(
     file,
-    function(dataUrl) {
+    image => {
 
-      updatePlayer(
-        playerId,
-        p => {
+      const player =
+        players.find(
+          p => p.id === playerId
+        );
 
-          p.image = dataUrl;
 
-        }
-      );
+      player.image =
+        image;
 
+
+      save();
 
       render();
 
@@ -695,23 +1132,19 @@ function handleImageUpload(
 }
 
 
-/* =========================
-   AFBEELDING VERWIJDEREN
-========================= */
-
 function removeImage(
   playerId
 ) {
 
-  updatePlayer(
-    playerId,
-    p => {
+  const player =
+    players.find(
+      p => p.id === playerId
+    );
 
-      p.image = "";
 
-    }
-  );
+  player.image = "";
 
+  save();
 
   render();
 
@@ -719,43 +1152,45 @@ function removeImage(
 
 
 /* =========================
-   HTML VEILIG MAKEN
+   HTML VEILIG
 ========================= */
 
 function escapeHtml(value) {
 
-  return String(value ?? "")
+  return String(
+    value ?? ""
+  )
 
-    .replaceAll(
-      "&",
-      "&amp;"
-    )
+  .replaceAll(
+    "&",
+    "&amp;"
+  )
 
-    .replaceAll(
-      "<",
-      "&lt;"
-    )
+  .replaceAll(
+    "<",
+    "&lt;"
+  )
 
-    .replaceAll(
-      ">",
-      "&gt;"
-    )
+  .replaceAll(
+    ">",
+    "&gt;"
+  )
 
-    .replaceAll(
-      '"',
-      "&quot;"
-    )
+  .replaceAll(
+    '"',
+    "&quot;"
+  )
 
-    .replaceAll(
-      "'",
-      "&#039;"
-    );
+  .replaceAll(
+    "'",
+    "&#039;"
+  );
 
 }
 
 
 /* =========================
-   PAGINA TEKENEN
+   RENDER
 ========================= */
 
 function render() {
@@ -766,7 +1201,7 @@ function render() {
     );
 
 
-  if (players.length === 0) {
+  if(players.length === 0) {
 
     container.innerHTML = `
 
@@ -777,8 +1212,7 @@ function render() {
         <br><br>
 
         Klik op
-        <b>＋ Player</b>
-        om te beginnen.
+        <b>＋ Player</b>.
 
       </div>
 
@@ -790,14 +1224,10 @@ function render() {
 
 
   container.innerHTML =
-
     players.map(
       player => `
 
       <div class="player">
-
-
-        <!-- PLAYER NAAM -->
 
         <div class="player-header">
 
@@ -808,135 +1238,92 @@ function render() {
             )}"
 
             onchange="
-
-              updatePlayer(
+              playerNameChanged(
                 ${player.id},
-                p => p.name =
                 this.value
               )
-
             "
-
-            aria-label="Speler naam"
 
           >
 
-
           <button
-
             class="danger small"
-
             onclick="
               deletePlayer(
                 ${player.id}
               )
             "
-
           >
-
             Verwijder
-
           </button>
 
         </div>
 
 
-
-        <!-- PLAATJE + STATS -->
-
         <div class="player-overview">
 
 
-          <!-- AFBEELDING -->
-
           <div class="image-box">
-
 
             ${
               player.image
 
               ?
 
-              `
-
-              <img
-
+              `<img
                 class="character-image"
-
                 src="${player.image}"
-
-                alt="Karakter afbeelding"
-
-              >
-
-              `
+              >`
 
               :
 
-              `
-
-              <div class="image-placeholder">
-
+              `<div
+                class="image-placeholder"
+              >
                 🧙
-
-              </div>
-
-              `
+              </div>`
 
             }
 
 
             <div class="image-controls">
 
-
-              <label class="file-label">
+              <label
+                class="file-label"
+              >
 
                 📷 Kies afbeelding
 
                 <input
-
                   class="file-input"
-
                   type="file"
-
                   accept="image/*"
-
                   onchange="
                     handleImageUpload(
                       ${player.id},
                       this
                     )
                   "
-
                 >
 
               </label>
-
 
               ${
                 player.image
 
                 ?
 
-                `
-
-                <button
-
-                  class="small danger"
-
-                  onclick="
-                    removeImage(
-                      ${player.id}
-                    )
-                  "
-
-                >
-
-                  Verwijder foto
-
-                </button>
-
-                `
+                `<br><br>
+                 <button
+                   class="danger small"
+                   onclick="
+                     removeImage(
+                       ${player.id}
+                     )
+                   "
+                 >
+                   Verwijder foto
+                 </button>`
 
                 :
 
@@ -944,313 +1331,170 @@ function render() {
 
               }
 
-
             </div>
 
           </div>
 
 
-
-          <!-- STATS -->
-
           <div class="stats">
 
+            ${STAT_NAMES.map(
+              stat => `
 
-            ${
+              <div class="stat">
 
-              STAT_NAMES.map(
+                <label>
+                  ${stat}
+                </label>
 
-                stat => `
+                <input
+                  type="number"
+                  value="${
+                    Number(
+                      player.stats[stat]
+                    ) || 0
+                  }"
+                  onchange="
+                    statChanged(
+                      ${player.id},
+                      '${stat}',
+                      this.value
+                    )
+                  "
+                >
 
-                <div class="stat">
+              </div>
 
-                  <label>
-
-                    ${stat}
-
-                  </label>
-
-
-                  <input
-
-                    type="number"
-
-                    value="${
-                      Number(
-                        player.stats[stat]
-                      ) || 0
-                    }"
-
-                    onchange="
-
-                      updatePlayer(
-                        ${player.id},
-
-                        p =>
-
-                        p.stats.${stat}
-                        =
-                        Number(
-                          this.value
-                        ) || 0
-
-                      )
-
-                    "
-
-                  >
-
-                </div>
-
-                `
-
-              ).join("")
-
-            }
-
+              `
+            ).join("")}
 
           </div>
 
         </div>
 
 
-
-        <!-- ABILITIES -->
-
         <h3 class="section-title">
-
           ⚔️ Abilities / Moves
-
         </h3>
 
 
         <div class="abilities">
 
-
           ${
-
             player.abilities.length
 
             ?
 
             player.abilities.map(
-
               ability => `
 
               <div class="ability">
 
-
                 <div class="ability-grid">
 
-
-                  <!-- NAAM -->
-
                   <input
-
                     placeholder="Naam"
-
                     value="${escapeHtml(
                       ability.name
                     )}"
-
                     onchange="
-
-                      updatePlayer(
-
+                      abilityChanged(
                         ${player.id},
-
-                        p =>
-
-                        p.abilities
-                        .find(
-                          a =>
-                          a.id ===
-                          ${ability.id}
-                        )
-                        .name =
+                        ${ability.id},
+                        'name',
                         this.value
-
                       )
-
                     "
-
                   >
 
-
-                  <!-- DAMAGE -->
-
                   <input
-
                     placeholder="Damage"
-
                     value="${escapeHtml(
                       ability.damage
                     )}"
-
                     onchange="
-
-                      updatePlayer(
-
+                      abilityChanged(
                         ${player.id},
-
-                        p =>
-
-                        p.abilities
-                        .find(
-                          a =>
-                          a.id ===
-                          ${ability.id}
-                        )
-                        .damage =
+                        ${ability.id},
+                        'damage',
                         this.value
-
                       )
-
                     "
-
                   >
 
-
-                  <!-- REQUIREMENT -->
-
                   <input
-
                     placeholder="Requirement"
-
                     value="${escapeHtml(
                       ability.requirement
                     )}"
-
                     onchange="
-
-                      updatePlayer(
-
+                      abilityChanged(
                         ${player.id},
-
-                        p =>
-
-                        p.abilities
-                        .find(
-                          a =>
-                          a.id ===
-                          ${ability.id}
-                        )
-                        .requirement =
+                        ${ability.id},
+                        'requirement',
                         this.value
-
                       )
-
                     "
-
                   >
 
                 </div>
 
 
-
-                <!-- BESCHRIJVING -->
-
                 <textarea
-
                   placeholder="Kleine beschrijving..."
-
                   onchange="
-
-                    updatePlayer(
-
+                    abilityChanged(
                       ${player.id},
-
-                      p =>
-
-                      p.abilities
-                      .find(
-                        a =>
-                        a.id ===
-                        ${ability.id}
-                      )
-                      .description =
+                      ${ability.id},
+                      'description',
                       this.value
-
                     )
-
                   "
-
                 >${escapeHtml(
                   ability.description
                 )}</textarea>
 
 
+                <br>
 
-                <!-- MOVE VERWIJDEREN -->
-
-                <div class="ability-actions">
-
-                  <button
-
-                    class="danger small"
-
-                    onclick="
-
-                      deleteAbility(
-
-                        ${player.id},
-
-                        ${ability.id}
-
-                      )
-
-                    "
-
-                  >
-
-                    Verwijder move
-
-                  </button>
-
-                </div>
-
+                <button
+                  class="danger small"
+                  onclick="
+                    deleteAbility(
+                      ${player.id},
+                      ${ability.id}
+                    )
+                  "
+                >
+                  Verwijder move
+                </button>
 
               </div>
 
               `
-
             ).join("")
 
             :
 
-            `
-
-            <div
-              style="color:#8e8298"
-            >
-
+            `<div style="color:#8e8298">
               Nog geen moves.
-
-            </div>
-
-            `
+            </div>`
 
           }
-
 
         </div>
 
 
         <br>
 
-
         <button
-
           onclick="
             addAbility(
               ${player.id}
             )
           "
-
         >
-
           ＋ Move / Ability
-
         </button>
 
 
@@ -1263,10 +1507,90 @@ function render() {
 
 
 /* =========================
+   EDIT FUNCTIES
+========================= */
+
+function playerNameChanged(
+  id,
+  value
+) {
+
+  const player =
+    players.find(
+      p => p.id === id
+    );
+
+  if(player) {
+
+    player.name =
+      value;
+
+    save();
+
+  }
+
+}
+
+
+function statChanged(
+  id,
+  stat,
+  value
+) {
+
+  const player =
+    players.find(
+      p => p.id === id
+    );
+
+  if(player) {
+
+    player.stats[stat] =
+      Number(value) || 0;
+
+    save();
+
+  }
+
+}
+
+
+function abilityChanged(
+  playerId,
+  abilityId,
+  property,
+  value
+) {
+
+  const player =
+    players.find(
+      p => p.id === playerId
+    );
+
+
+  const ability =
+    player?.abilities.find(
+      a => a.id === abilityId
+    );
+
+
+  if(ability) {
+
+    ability[property] =
+      value;
+
+    save();
+
+  }
+
+}
+
+
+/* =========================
    START
 ========================= */
 
-render();
+loadUser();
 
 </script>
 
