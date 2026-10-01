@@ -469,6 +469,99 @@ button.small {
   .cast-grid{grid-template-columns:1fr}
 }
 
+
+    /* DND SELECT */
+    .dnd-select {
+      max-width: 1100px;
+      margin: 30px auto;
+      padding: 10px 20px 40px;
+    }
+    .dnd-select-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .dnd-select-header h2 {
+      font-size: 2rem;
+      margin: 0 0 8px;
+    }
+    .dnd-select-header p {
+      color: #b9aed0;
+      margin: 0;
+    }
+    .dnd-options {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .dnd-option {
+      position: relative;
+      min-height: 250px;
+      padding: 26px;
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 20px;
+      background: linear-gradient(145deg, rgba(45,31,70,.95), rgba(24,17,39,.98));
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+    .dnd-option:hover {
+      transform: translateY(-4px);
+      border-color: rgba(170,120,255,.55);
+      box-shadow: 0 12px 35px rgba(0,0,0,.28);
+    }
+    .dnd-option.disabled {
+      cursor: default;
+      opacity: .58;
+    }
+    .dnd-option.disabled:hover {
+      transform: none;
+      border-color: rgba(255,255,255,.10);
+      box-shadow: none;
+    }
+    .dnd-option .dnd-number {
+      font-size: .82rem;
+      color: #a991c7;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .dnd-option h3 {
+      font-size: 1.55rem;
+      margin: 12px 0 8px;
+    }
+    .dnd-option p {
+      color: #c4b9d4;
+      line-height: 1.5;
+      margin: 0;
+    }
+    .dnd-option .dnd-badge {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(130,80,200,.18);
+      color: #d9c7ff;
+      font-size: .8rem;
+      font-weight: 700;
+    }
+    .dnd-option.teen-years {
+      border-color: rgba(166,116,255,.38);
+      background:
+        radial-gradient(circle at 80% 15%, rgba(124,72,190,.22), transparent 38%),
+        linear-gradient(145deg, rgba(52,31,78,.98), rgba(21,15,35,.98));
+    }
+    .teen-theme {
+      margin-top: 12px;
+      color: #e6d9ff;
+      font-size: .9rem;
+      font-weight: 700;
+    }
+    @media (max-width: 850px) {
+      .dnd-options {
+        grid-template-columns: 1fr;
+      }
+    }
+
 </style>
 </head>
 
@@ -570,7 +663,39 @@ button.small {
 
   <div id="partyPanel" class="party-panel"></div>
 
-  <div id="partyCharacters"></div>
+  
+<div id="dndSelect" class="dnd-select" style="display:none;">
+  <div class="dnd-select-header">
+    <h2>Choose DND</h2>
+    <p>Kies welk avontuur je met deze party wilt spelen.</p>
+  </div>
+
+  <div class="dnd-options">
+    <button class="dnd-option teen-years" onclick="chooseDND('teen-years')">
+      <div class="dnd-number">DND 01</div>
+      <h3>Teen Years</h3>
+      <div class="teen-theme">2006 • JJK thema</div>
+      <p>De eerste speelbare DND. Een donkere urban-fantasy setting met de sfeer van 2006.</p>
+      <span class="dnd-badge">Beschikbaar</span>
+    </button>
+
+    <button class="dnd-option disabled" disabled>
+      <div class="dnd-number">DND 02</div>
+      <h3>Youngins</h3>
+      <p>Een tweede avontuur dat later wordt toegevoegd.</p>
+      <span class="dnd-badge">Coming soon</span>
+    </button>
+
+    <button class="dnd-option disabled" disabled>
+      <div class="dnd-number">DND 03</div>
+      <h3>Revived</h3>
+      <p>Een derde avontuur dat later wordt toegevoegd.</p>
+      <span class="dnd-badge">Coming soon</span>
+    </button>
+  </div>
+</div>
+
+<div id="partyCharacters"></div>
 
   <div
     id="players"
@@ -1181,11 +1306,49 @@ function uploadCharacterImage(userId, input) {
   });
 }
 
+
+// ===============================
+// DND SELECTION
+// ===============================
+
+let selectedDND = null;
+
+function chooseDND(dndId) {
+  if (dndId !== "teen-years") return;
+
+  selectedDND = dndId;
+
+  const select = document.getElementById("dndSelect");
+  const characters = document.getElementById("partyCharacters");
+
+  if (select) select.style.display = "none";
+  if (characters) characters.style.display = "";
+
+  renderPartyCharacters();
+}
+
+function showDNDSelection() {
+  const select = document.getElementById("dndSelect");
+  const characters = document.getElementById("partyCharacters");
+
+  if (select) select.style.display = "";
+  if (characters) characters.style.display = "none";
+}
+
 function renderPartyCharacters() {
   const container = document.getElementById("partyCharacters");
   if (!container) return;
 
   if (!currentParty || currentParty.status !== "started") {
+    container.innerHTML = "";
+    const select = document.getElementById("dndSelect");
+    if (select) select.style.display = "none";
+    return;
+  }
+
+  // Eerst een DND kiezen nadat de party gestart is.
+  if (!selectedDND) {
+    showDNDSelection();
     container.innerHTML = "";
     return;
   }
