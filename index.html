@@ -338,6 +338,137 @@ button.small {
     grid-template-columns: 1fr;
   }
 }
+.party-characters{
+  display:grid;
+  gap:20px;
+  margin-top:20px;
+}
+.character-card{
+  background:#1a1523;
+  border:1px solid #3a2a4c;
+  border-radius:14px;
+  padding:18px;
+}
+.character-card h2{
+  margin-top:0;
+  color:#c9a7ff;
+}
+.character-top{
+  display:grid;
+  grid-template-columns:180px 1fr;
+  gap:20px;
+}
+.character-photo-wrap{text-align:center}
+.character-photo{
+  width:170px;
+  height:170px;
+  object-fit:cover;
+  border-radius:12px;
+  border:2px solid #60477a;
+  background:#0f0c15;
+}
+.character-placeholder{
+  width:170px;
+  height:170px;
+  margin:auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:2px dashed #60477a;
+  border-radius:12px;
+  background:#0f0c15;
+  font-size:46px;
+}
+.character-photo input{display:none}
+.character-photo label{
+  display:inline-block;
+  margin-top:10px;
+  background:#6d3bb5;
+  padding:8px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+}
+.character-owner{
+  color:#9e91aa;
+  font-size:13px;
+  margin-bottom:10px;
+}
+.character-nickname{
+  width:100%;
+  background:#0f0c15;
+  color:white;
+  border:1px solid #49365d;
+  border-radius:8px;
+  padding:10px;
+  font-size:20px;
+  font-weight:bold;
+}
+.character-stats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+.character-stat{
+  background:#110e17;
+  border:1px solid #3d2c4e;
+  border-radius:9px;
+  padding:10px;
+}
+.character-stat label{
+  display:block;
+  color:#bfaed0;
+  font-size:12px;
+  margin-bottom:5px;
+}
+.character-stat input{
+  width:100%;
+  background:#211a2c;
+  color:white;
+  border:1px solid #4a385b;
+  border-radius:6px;
+  padding:8px;
+  font-size:18px;
+}
+.casts{
+  display:grid;
+  gap:10px;
+}
+.cast{
+  background:#120f18;
+  border:1px solid #3d2c4e;
+  border-radius:10px;
+  padding:12px;
+}
+.cast-grid{
+  display:grid;
+  grid-template-columns:1.2fr .7fr .9fr;
+  gap:8px;
+}
+.cast input,.cast textarea{
+  width:100%;
+  background:#211a2c;
+  color:white;
+  border:1px solid #4a385b;
+  border-radius:6px;
+  padding:8px;
+}
+.cast textarea{
+  min-height:60px;
+  margin-top:8px;
+  resize:vertical;
+}
+.readonly-note{
+  color:#8e8298;
+  font-size:12px;
+  margin-top:8px;
+}
+@media(max-width:650px){
+  .character-top{grid-template-columns:1fr}
+  .character-stats{grid-template-columns:repeat(2,1fr)}
+  .cast-grid{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 
@@ -438,6 +569,8 @@ button.small {
 <div class="container">
 
   <div id="partyPanel" class="party-panel"></div>
+
+  <div id="partyCharacters"></div>
 
   <div
     id="players"
@@ -850,8 +983,350 @@ supabaseClient.auth.onAuthStateChange(
 
 
 /* =========================
+   PARTY D&D CHARACTERS
+========================= */
+
+let partyCharacters = [];
+let partyCharacterChannel = null;
+
+const DND_STAT_NAMES = ["STR","DEX","CON","INT","WIS","CHA"];
+
+function defaultCharacter(userId) {
+  return {
+    party_id: currentParty.id,
+    user_id: userId,
+    nickname: "Nieuwe held",
+    image: "",
+    stats: {
+      STR: 10, DEX: 10, CON: 10,
+      INT: 10, WIS: 10, CHA: 10
+    },
+    casts: []
+  };
+}
+
+function canEditCharacter(character) {
+  return currentUser &&
+    (currentUser.id === character.user_id ||
+     currentParty?.dm_id === currentUser.id);
+}
+
+async function ensurePartyCharacters() {
+  if (!currentParty || currentParty.status !== "started") return;
+
+  const memberIds = currentPartyMembers.map(m => m.id);
+
+  for (const userId of memberIds) {
+    const existing = partyCharacters.find(c => c.user_id === userId);
+    if (existing) continue;
+
+    const character = defaultCharacter(userId);
+    const { error } = await supabaseClient
+      .from("party_characters")
+      .insert(character);
+
+    if (error && error.code !== "23505") {
+      console.error("Character aanmaken mislukt:", error);
+    }
+  }
+
+  await loadPartyCharacters();
+}
+
+async function loadPartyCharacters() {
+  if (!currentParty || currentParty.status !== "started") {
+    partyCharacters = [];
+    renderPartyCharacters();
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("party_characters")
+    .select("*")
+    .eq("party_id", currentParty.id);
+
+  if (error) {
+    console.error("Characters laden mislukt:", error);
+    return;
+  }
+
+  partyCharacters = data || [];
+  renderPartyCharacters();
+}
+
+async function updateCharacter(userId, field, value) {
+  const character = partyCharacters.find(c => c.user_id === userId);
+  if (!character || !canEditCharacter(character)) return;
+
+  let patch = {};
+
+  if (field === "nickname") {
+    patch.nickname = value;
+  } else if (field === "image") {
+    patch.image = value;
+  } else if (DND_STAT_NAMES.includes(field)) {
+    patch.stats = {
+      ...(character.stats || {}),
+      [field]: Number(value) || 0
+    };
+  }
+
+  if (!Object.keys(patch).length) return;
+
+  const { error } = await supabaseClient
+    .from("party_characters")
+    .update(patch)
+    .eq("party_id", currentParty.id)
+    .eq("user_id", userId);
+
+  if (error) {
+    alert("Opslaan mislukt: " + error.message);
+    return;
+  }
+
+  Object.assign(character, patch);
+  renderPartyCharacters();
+}
+
+async function addCast(userId) {
+  const character = partyCharacters.find(c => c.user_id === userId);
+  if (!character || !canEditCharacter(character)) return;
+
+  const casts = Array.isArray(character.casts) ? [...character.casts] : [];
+  casts.push({
+    id: crypto.randomUUID(),
+    name: "Nieuwe cast",
+    damage: "0",
+    requirement: "Geen",
+    description: ""
+  });
+
+  const { error } = await supabaseClient
+    .from("party_characters")
+    .update({ casts })
+    .eq("party_id", currentParty.id)
+    .eq("user_id", userId);
+
+  if (error) {
+    alert("Cast toevoegen mislukt: " + error.message);
+    return;
+  }
+
+  character.casts = casts;
+  renderPartyCharacters();
+}
+
+async function updateCast(userId, castId, field, value) {
+  const character = partyCharacters.find(c => c.user_id === userId);
+  if (!character || !canEditCharacter(character)) return;
+
+  const casts = (character.casts || []).map(c =>
+    c.id === castId ? {...c, [field]: value} : c
+  );
+
+  const { error } = await supabaseClient
+    .from("party_characters")
+    .update({ casts })
+    .eq("party_id", currentParty.id)
+    .eq("user_id", userId);
+
+  if (error) {
+    alert("Cast opslaan mislukt: " + error.message);
+    return;
+  }
+
+  character.casts = casts;
+}
+
+async function deleteCast(userId, castId) {
+  const character = partyCharacters.find(c => c.user_id === userId);
+  if (!character || !canEditCharacter(character)) return;
+
+  const casts = (character.casts || []).filter(c => c.id !== castId);
+
+  const { error } = await supabaseClient
+    .from("party_characters")
+    .update({ casts })
+    .eq("party_id", currentParty.id)
+    .eq("user_id", userId);
+
+  if (error) {
+    alert("Cast verwijderen mislukt: " + error.message);
+    return;
+  }
+
+  character.casts = casts;
+  renderPartyCharacters();
+}
+
+function uploadCharacterImage(userId, input) {
+  const file = input.files?.[0];
+  if (!file) return;
+
+  compressImage(file, async image => {
+    await updateCharacter(userId, "image", image);
+  });
+}
+
+function renderPartyCharacters() {
+  const container = document.getElementById("partyCharacters");
+  if (!container) return;
+
+  if (!currentParty || currentParty.status !== "started") {
+    container.innerHTML = "";
+    return;
+  }
+
+  const members = [...currentPartyMembers].sort((a,b) => {
+    if (a.id === currentParty.dm_id) return -1;
+    if (b.id === currentParty.dm_id) return 1;
+    return (a.username || "").localeCompare(b.username || "");
+  });
+
+  container.innerHTML = `
+    <div class="party-characters">
+      ${members.map(member => {
+        const character = partyCharacters.find(c => c.user_id === member.id);
+        if (!character) {
+          return `
+            <div class="character-card">
+              <h2>⏳ Character laden...</h2>
+              <div>${escapeHtml(member.username)}</div>
+            </div>
+          `;
+        }
+
+        const editable = canEditCharacter(character);
+        const stats = character.stats || {};
+        const casts = Array.isArray(character.casts) ? character.casts : [];
+
+        return `
+          <div class="character-card">
+            <div class="character-top">
+
+              <div class="character-photo-wrap">
+                ${
+                  character.image
+                    ? `<img class="character-photo" src="${character.image}">`
+                    : `<div class="character-placeholder">🧙</div>`
+                }
+
+                ${
+                  editable
+                    ? `
+                      <label>
+                        📷 Kies D&D-foto
+                        <input type="file" accept="image/*"
+                          onchange="uploadCharacterImage('${member.id}', this)">
+                      </label>
+                    `
+                    : ""
+                }
+              </div>
+
+              <div>
+                <div class="character-owner">
+                  Account: <b>${escapeHtml(member.username)}</b>
+                  ${member.role === "DM" ? " 👑 DM" : ""}
+                </div>
+
+                ${
+                  editable
+                    ? `
+                      <input
+                        class="character-nickname"
+                        value="${escapeHtml(character.nickname || "")}"
+                        placeholder="Jouw D&D-naam / nickname"
+                        onchange="updateCharacter('${member.id}', 'nickname', this.value)"
+                      >
+                    `
+                    : `
+                      <div class="character-nickname">
+                        ${escapeHtml(character.nickname || "Nog geen D&D-naam")}
+                      </div>
+                    `
+                }
+
+                <div class="readonly-note">
+                  Dit is alleen de naam van je D&D-personage. Je echte accountnaam blijft apart.
+                </div>
+
+                <div class="character-stats" style="margin-top:14px">
+                  ${DND_STAT_NAMES.map(stat => `
+                    <div class="character-stat">
+                      <label>${stat}</label>
+                      <input
+                        type="number"
+                        value="${Number(stats[stat]) || 0}"
+                        ${editable ? "" : "disabled"}
+                        onchange="updateCharacter('${member.id}', '${stat}', this.value)"
+                      >
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+            </div>
+
+            <h3 class="section-title">✨ Casts / Moves</h3>
+
+            <div class="casts">
+              ${
+                casts.length
+                  ? casts.map(cast => `
+                    <div class="cast">
+                      <div class="cast-grid">
+                        <input
+                          placeholder="Naam"
+                          value="${escapeHtml(cast.name)}"
+                          ${editable ? "" : "disabled"}
+                          onchange="updateCast('${member.id}','${cast.id}','name',this.value)"
+                        >
+                        <input
+                          placeholder="Damage"
+                          value="${escapeHtml(cast.damage)}"
+                          ${editable ? "" : "disabled"}
+                          onchange="updateCast('${member.id}','${cast.id}','damage',this.value)"
+                        >
+                        <input
+                          placeholder="Requirement"
+                          value="${escapeHtml(cast.requirement)}"
+                          ${editable ? "" : "disabled"}
+                          onchange="updateCast('${member.id}','${cast.id}','requirement',this.value)"
+                        >
+                      </div>
+                      <textarea
+                        placeholder="Beschrijving..."
+                        ${editable ? "" : "disabled"}
+                        onchange="updateCast('${member.id}','${cast.id}','description',this.value)"
+                      >${escapeHtml(cast.description)}</textarea>
+                      ${
+                        editable
+                          ? `<br><button class="danger small" onclick="deleteCast('${member.id}','${cast.id}')">Verwijder cast</button>`
+                          : ""
+                      }
+                    </div>
+                  `).join("")
+                  : `<div style="color:#8e8298">Nog geen casts/moves.</div>`
+              }
+            </div>
+
+            ${
+              editable
+                ? `<br><button onclick="addCast('${member.id}')">＋ Cast / Move</button>`
+                : ""
+            }
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+
+/* =========================
    PARTY SYSTEM
 ========================= */
+
 
 let currentParty = null;
 let currentPartyMembers = [];
@@ -967,6 +1442,9 @@ async function startParty() {
 
   currentParty = data;
   renderPartyPanel();
+  await ensurePartyCharacters();
+  subscribePartyCharacters();
+  renderPartyCharacters();
 }
 
 async function leaveParty() {
@@ -994,12 +1472,16 @@ async function loadParty() {
   if (!currentUser) return;
 
   const { data: memberships, error } = await supabaseClient
-    .from("party_members").select("party_id").eq("user_id", currentUser.id);
+    .from("party_members")
+    .select("party_id")
+    .eq("user_id", currentUser.id);
 
   if (error || !memberships?.length) {
     currentParty = null;
     currentPartyMembers = [];
+    partyCharacters = [];
     renderPartyPanel();
+    renderPartyCharacters();
     return;
   }
 
@@ -1009,25 +1491,66 @@ async function loadParty() {
   if (partyError || !party) {
     currentParty = null;
     currentPartyMembers = [];
+    partyCharacters = [];
     renderPartyPanel();
+    renderPartyCharacters();
     return;
   }
 
   currentParty = party;
 
   const { data: members } = await supabaseClient
-    .from("party_members").select("user_id").eq("party_id", party.id);
+    .from("party_members")
+    .select("user_id")
+    .eq("party_id", party.id);
 
   const ids = (members || []).map(m => m.user_id);
+
   if (!ids.length) {
     currentPartyMembers = [];
   } else {
     const { data: profiles } = await supabaseClient
-      .from("profiles").select("id, username, role").in("id", ids);
+      .from("profiles")
+      .select("id, username, role")
+      .in("id", ids);
+
     currentPartyMembers = profiles || [];
   }
 
   renderPartyPanel();
+
+  if (currentParty.status === "started") {
+    await ensurePartyCharacters();
+    subscribePartyCharacters();
+  } else {
+    partyCharacters = [];
+    renderPartyCharacters();
+  }
+}
+
+function subscribePartyCharacters() {
+  if (!currentParty) return;
+
+  if (partyCharacterChannel) {
+    supabaseClient.removeChannel(partyCharacterChannel);
+    partyCharacterChannel = null;
+  }
+
+  partyCharacterChannel = supabaseClient
+    .channel("party-characters-" + currentParty.id)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "party_characters",
+        filter: "party_id=eq." + currentParty.id
+      },
+      payload => {
+        loadPartyCharacters();
+      }
+    )
+    .subscribe();
 }
 
 function renderPartyPanel() {
@@ -1118,6 +1641,12 @@ function renderPartyPanel() {
 setInterval(() => {
   if (currentUser && currentParty) {
     loadParty();
+  }
+}, 5000);
+
+setInterval(() => {
+  if (currentUser && currentParty?.status === "started") {
+    loadPartyCharacters();
   }
 }, 5000);
 
@@ -1480,6 +2009,13 @@ function escapeHtml(value) {
 ========================= */
 
 function render() {
+
+  if (currentParty?.status === "started") {
+    const oldContainer = document.getElementById("players");
+    if (oldContainer) oldContainer.innerHTML = "";
+    renderPartyCharacters();
+    return;
+  }
 
   const container =
     document.getElementById(
