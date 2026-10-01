@@ -562,6 +562,24 @@ button.small {
       }
     }
 
+
+    .role-select{max-width:1100px;margin:30px auto;padding:10px 20px 40px}
+    .role-select-header{text-align:center;margin-bottom:28px}
+    .role-select-header h2{font-size:2rem;margin:0 0 8px}
+    .role-select-header p{color:#b9aed0;margin:0}
+    .role-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+    .role-card{padding:24px;border:1px solid rgba(255,255,255,.10);border-radius:20px;background:linear-gradient(145deg,rgba(45,31,70,.95),rgba(24,17,39,.98));color:inherit;text-align:left;cursor:pointer;transition:.18s}
+    .role-card:hover{transform:translateY(-4px);border-color:rgba(170,120,255,.55);box-shadow:0 12px 35px rgba(0,0,0,.28)}
+    .role-card h3{margin:8px 0 5px;font-size:1.45rem}
+    .role-character{color:#bda8da;font-size:.88rem;margin-bottom:14px}
+    .role-card p{color:#c4b9d4;line-height:1.45;margin:0 0 16px}
+    .role-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+    .role-stat{padding:8px 7px;border-radius:10px;background:rgba(0,0,0,.18);text-align:center;font-size:.82rem}
+    .role-stat strong{display:block;font-size:1rem;color:#eee5fa}
+    .role-stat span{color:#a99bb8}
+    .role-rule{margin-top:22px;padding:14px 16px;border-radius:14px;background:rgba(130,80,200,.12);color:#d9cbed;line-height:1.5;text-align:center}
+    @media(max-width:700px){.role-options{grid-template-columns:1fr}}
+
 </style>
 </head>
 
@@ -693,6 +711,53 @@ button.small {
       <span class="dnd-badge">Coming soon</span>
     </button>
   </div>
+</div>
+
+
+<div id="teenYearsRoles" class="role-select" style="display:none;">
+  <div class="role-select-header">
+    <h2>Teen Years — Choose your role</h2>
+    <p>2006 • JJK thema • Kies één vaste rol.</p>
+  </div>
+  <div class="role-options">
+    <button class="role-card" onclick="chooseTeenRole('strongest')">
+      <h3>The Strongest</h3><div class="role-character">Overconfident powerhouse</div>
+      <p>Maximale STR, maar door overconfidence een Intelligence-nerf.</p>
+      <div class="role-stats">
+        <div class="role-stat"><span>STR</span><strong>10</strong></div><div class="role-stat"><span>DEX</span><strong>5</strong></div>
+        <div class="role-stat"><span>CON</span><strong>5</strong></div><div class="role-stat"><span>INT</span><strong>3</strong></div>
+        <div class="role-stat"><span>WIS</span><strong>5</strong></div><div class="role-stat"><span>CHA</span><strong>5</strong></div>
+      </div>
+    </button>
+    <button class="role-card" onclick="chooseTeenRole('curse-eater')">
+      <h3>Curse Eater</h3><div class="role-character">Geto • versatile all-rounder</div>
+      <p>Alles op 5, met extra DEX voor veelzijdigheid.</p>
+      <div class="role-stats">
+        <div class="role-stat"><span>STR</span><strong>5</strong></div><div class="role-stat"><span>DEX</span><strong>8</strong></div>
+        <div class="role-stat"><span>CON</span><strong>5</strong></div><div class="role-stat"><span>INT</span><strong>5</strong></div>
+        <div class="role-stat"><span>WIS</span><strong>5</strong></div><div class="role-stat"><span>CHA</span><strong>5</strong></div>
+      </div>
+    </button>
+    <button class="role-card" onclick="chooseTeenRole('nurse')">
+      <h3>Nurse</h3><div class="role-character">Shoko</div>
+      <p>CON, WIS en INT zijn 9; alle andere stats zijn 2.</p>
+      <div class="role-stats">
+        <div class="role-stat"><span>STR</span><strong>2</strong></div><div class="role-stat"><span>DEX</span><strong>2</strong></div>
+        <div class="role-stat"><span>CON</span><strong>9</strong></div><div class="role-stat"><span>INT</span><strong>9</strong></div>
+        <div class="role-stat"><span>WIS</span><strong>9</strong></div><div class="role-stat"><span>CHA</span><strong>2</strong></div>
+      </div>
+    </button>
+    <button class="role-card" onclick="chooseTeenRole('bag')">
+      <h3>Bag</h3><div class="role-character">Cursed User • Hidden Inventory</div>
+      <p>Alle stats op 3, behalve DEX op 10.</p>
+      <div class="role-stats">
+        <div class="role-stat"><span>STR</span><strong>3</strong></div><div class="role-stat"><span>DEX</span><strong>10</strong></div>
+        <div class="role-stat"><span>CON</span><strong>3</strong></div><div class="role-stat"><span>INT</span><strong>3</strong></div>
+        <div class="role-stat"><span>WIS</span><strong>3</strong></div><div class="role-stat"><span>CHA</span><strong>3</strong></div>
+      </div>
+    </button>
+  </div>
+  <div class="role-rule"><strong>Roll:</strong> D20 + stat modifier. Stat 10 geeft <strong>+3</strong>.</div>
 </div>
 
 <div id="partyCharacters"></div>
@@ -1313,18 +1378,43 @@ function uploadCharacterImage(userId, input) {
 
 let selectedDND = null;
 
+
+let selectedTeenRole = null;
+const TEEN_YEARS_ROLES = {
+  strongest:{name:"The Strongest",stats:{STR:10,DEX:5,CON:5,INT:3,WIS:5,CHA:5}},
+  "curse-eater":{name:"Curse Eater",stats:{STR:5,DEX:8,CON:5,INT:5,WIS:5,CHA:5}},
+  nurse:{name:"Nurse",stats:{STR:2,DEX:2,CON:9,INT:9,WIS:9,CHA:2}},
+  bag:{name:"Bag",stats:{STR:3,DEX:10,CON:3,INT:3,WIS:3,CHA:3}}
+};
+
+async function chooseTeenRole(roleId){
+  if(!TEEN_YEARS_ROLES[roleId] || !currentUser || !currentParty)return;
+  selectedTeenRole=roleId;
+  const {error}=await supabase.from("party_characters")
+    .update({role:roleId})
+    .eq("party_id",currentParty.id)
+    .eq("user_id",currentUser.id);
+  if(error){
+    alert("Rol kiezen mislukt: "+error.message);
+    selectedTeenRole=null;
+    return;
+  }
+  document.getElementById("teenYearsRoles").style.display="none";
+  document.getElementById("partyCharacters").style.display="";
+  await loadPartyCharacters();
+  renderPartyCharacters();
+}
+
+function showTeenYearsRoles(){
+  document.getElementById("dndSelect").style.display="none";
+  document.getElementById("partyCharacters").style.display="none";
+  document.getElementById("teenYearsRoles").style.display="";
+}
+
 function chooseDND(dndId) {
   if (dndId !== "teen-years") return;
-
   selectedDND = dndId;
-
-  const select = document.getElementById("dndSelect");
-  const characters = document.getElementById("partyCharacters");
-
-  if (select) select.style.display = "none";
-  if (characters) characters.style.display = "";
-
-  renderPartyCharacters();
+  showTeenYearsRoles();
 }
 
 function showDNDSelection() {
@@ -1349,6 +1439,12 @@ function renderPartyCharacters() {
   // Eerst een DND kiezen nadat de party gestart is.
   if (!selectedDND) {
     showDNDSelection();
+    container.innerHTML = "";
+    return;
+  }
+
+  if (selectedDND === "teen-years" && !selectedTeenRole) {
+    showTeenYearsRoles();
     container.innerHTML = "";
     return;
   }
