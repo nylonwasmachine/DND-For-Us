@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DND For Us</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #0b0d12;
+  --card: #151923;
+  --card2: #1c2230;
+  --border: #303849;
+  --text: #f5f7fb;
+  --muted: #9aa4b5;
+  --accent: #8b5cf6;
+  --danger: #ef4444;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(135deg, #0b0d12, #171225);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+}
+
+header {
+  padding: 24px 5%;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  position: sticky;
+  top: 0;
+  background: rgba(11, 13, 18, 0.94);
+  backdrop-filter: blur(10px);
+  z-index: 5;
+}
+
+h1 {
+  margin: 0;
+  font-size: 30px;
+}
+
+header p {
+  margin: 5px 0 0;
+  color: var(--muted);
+}
+
+button {
+  border: 0;
+  border-radius: 9px;
+  padding: 10px 14px;
+  background: var(--accent);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(1.12);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.danger {
+  background: transparent;
+  border: 1px solid #7f3030;
+  color: #ff8b8b;
+}
+
+main {
+  width: min(1400px, 92%);
+  margin: 28px auto 70px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.notice {
+  padding: 12px 15px;
+  border: 1px solid #55418c;
+  background: #211a38;
+  border-radius: 10px;
+  margin-bottom: 18px;
+  color: #ddd3ff;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+.player {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 15px 40px #0003;
+}
+
+.player-head {
+  padding: 15px 16px;
+  background: #19152a;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.number {
+  background: var(--accent);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: bold;
+  flex: none;
+}
+
+.name {
+  background: transparent;
+  border: 0;
+  color: white;
+  font-size: 19px;
+  font-weight: bold;
+  outline: 0;
+  width: 100%;
+  padding: 5px;
+}
+
+.name:focus {
+  border-bottom: 1px solid var(--accent);
+}
+
+.icon {
+  background: transparent;
+  color: var(--muted);
+  padding: 6px 9px;
+}
+
+.icon:hover {
+  color: #ff7777;
+}
+
+section {
+  padding: 16px;
+}
+
+section + section {
+  border-top: 1px solid var(--border);
+}
+
+.title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.title h2 {
+  font-size: 16px;
+  margin: 0;
+}
+
+.title span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 9px;
+}
+
+label {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: bold;
+}
+
+input,
+textarea {
+  font: inherit;
+  width: 100%;
+  background: #0d1118;
+  color: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px;
+  outline: 0;
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--accent);
+}
+
+.stats label {
+  text-align: center;
+}
+
+.stats input {
+  text-align: center;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+.small {
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
+.ability {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.ability-top {
+  display: flex;
+  gap: 7px;
+}
+
+.ability-top input {
+  font-weight: bold;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.fields input {
+  margin-top: 5px;
+}
+
+.desc {
+  margin-top: 9px;
+}
+
+.desc textarea {
+  margin-top: 5px;
+  resize: vertical;
+}
+
+.empty {
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: 15px;
+  padding: 65px 20px;
+  color: var(--muted);
+}
+
+.empty h2 {
+  color: white;
+}
+
+.empty .dice {
+  font-size: 50px;
+}
+
+footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 20px;
+}
+
+@media (max-width: 600px) {
+  header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .actions {
+    width: 100%;
+  }
+
+  .actions button {
+    flex: 1;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div>
+    <h1>⚔️ DND For Us</h1>
+    <p>Players, stats & abilities</p>
+  </div>
+
+  <div class="actions">
+    <button id="add">＋ Player</button>
+    <button id="reset" class="danger">Reset</button>
+  </div>
+</header>
+
+<main>
+
+  <div id="notice" class="notice hidden">
+    Maximum van 5 players bereikt.
+  </div>
+
+  <div id="players" class="grid"></div>
+
+  <div id="empty" class="empty">
+    <div class="dice">🎲</div>
+    <h2>Nog geen players</h2>
+    <p>Voeg een player toe om te beginnen.</p>
+    <button id="first">＋ Eerste player</button>
+  </div>
+
+</main>
+
+<footer>
+  Je gegevens worden automatisch opgeslagen in deze browser.
+</footer>
+
+
+<script>
+
+const KEY = "dnd-for-us-v1";
+const MAX = 5;
+
+let players = load();
+
+
+/* =========================
+   DATA OPSLAAN / LADEN
+========================= */
+
+function load() {
+
+  try {
+
+    return JSON.parse(
+      localStorage.getItem(KEY)
+    ) || [];
+
+  } catch (error) {
+
+    return [];
+
+  }
+
+}
+
+
+function save() {
+
+  localStorage.setItem(
+    KEY,
+    JSON.stringify(players)
+  );
+
+}
+
+
+function generateId() {
+
+  return Date.now().toString(36)
+    + Math.random().toString(36).slice(2);
+
+}
+
+
+/* =========================
+   NIEUWE PLAYER
+========================= */
+
+function newPlayer() {
+
+  return {
+
+    id: generateId(),
+
+    name: "Player " + (players.length + 1),
+
+    stats: {
+
+      STR: 10,
+      DEX: 10,
+      CON: 10,
+      INT: 10,
+      WIS: 10,
+      CHA: 10
+
+    },
+
+    abilities: []
+
+  };
+
+}
+
+
+/* =========================
+   NIEUWE ABILITY
+========================= */
+
+function newAbility() {
+
+  return {
+
+    id: generateId(),
+
+    name: "",
+
+    damage: "",
+
+    requirement: "",
+
+    description: ""
+
+  };
+
+}
+
+
+/* =========================
+   RENDER
+========================= */
+
+function render() {
+
+  const root =
+    document.getElementById("players");
+
+  root.innerHTML = "";
+
+  const empty =
+    document.getElementById("empty");
+
+  const notice =
+    document.getElementById("notice");
+
+  const addButton =
+    document.getElementById("add");
+
+  const firstButton =
+    document.getElementById("first");
+
+
+  empty.classList.toggle(
+    "hidden",
+    players.length > 0
+  );
+
+
+  notice.classList.toggle(
+    "hidden",
+    players.length < MAX
+  );
+
+
+  addButton.disabled =
+    players.length >= MAX;
+
+  firstButton.disabled =
+    players.length >= MAX;
+
+
+  players.forEach((player, playerIndex) => {
+
+    createPlayerCard(
+      player,
+      playerIndex,
+      root
+    );
+
+  });
+
+}
+
+
+/* =========================
+   PLAYER CARD
+========================= */
+
+function createPlayerCard(
+  player,
+  playerIndex,
+  root
+) {
+
+  const card =
+    document.createElement("article");
+
+  card.className = "player";
+
+
+  /* HEADER */
+
+  const header =
+    document.createElement("div");
+
+  header.className = "player-head";
+
+
+  const number =
+    document.createElement("div");
+
+  number.className = "number";
+
+  number.textContent =
+    playerIndex + 1;
+
+
+  const name =
+    document.createElement("input");
+
+  name.className = "name";
+
+  name.value = player.name;
+
+  name.maxLength = 30;
+
+
+  name.oninput = function() {
+
+    player.name = name.value;
+
+    save();
+
+  };
+
+
+  const deleteButton =
+    document.createElement("button");
+
+  deleteButton.className = "icon";
+
+  deleteButton.textContent = "✕";
+
+  deleteButton.title =
+    "Player verwijderen";
+
+
+  deleteButton.onclick = function() {
+
+    if (
+      confirm(
+        "Deze player verwijderen?"
+      )
+    ) {
+
+      players =
+        players.filter(
+          p => p.id !== player.id
+        );
+
+      save();
+
+      render();
+
+    }
+
+  };
+
+
+  header.append(
+    number,
+    name,
+    deleteButton
+  );
+
+
+  card.append(header);
+
+
+  /* STATS */
+
+  createStatsSection(
+    card,
+    player
+  );
+
+
+  /* ABILITIES */
+
+  createAbilitiesSection(
+    card,
+    player
+  );
+
+
+  root.append(card);
+
+}
+
+
+/* =========================
+   STATS
+========================= */
+
+function createStatsSection(
+  card,
+  player
+) {
+
+  const section =
+    document.createElement("section");
+
+
+  const title =
+    document.createElement("div");
+
+  title.className = "title";
+
+
+  const heading =
+    document.createElement("h2");
+
+  heading.textContent =
+    "Stats";
+
+
+  const range =
+    document.createElement("span");
+
+  range.textContent =
+    "0 – 30";
+
+
+  title.append(
+    heading,
+    range
+  );
+
+
+  section.append(title);
+
+
+  const stats =
+    document.createElement("div");
+
+  stats.className = "stats";
+
+
+  const statNames = [
+    "STR",
+    "DEX",
+    "CON",
+    "INT",
+    "WIS",
+    "CHA"
+  ];
+
+
+  statNames.forEach(
+    stat => {
+
+      const label =
+        document.createElement("label");
+
+      label.textContent =
+        stat;
+
+
+      const input =
+        document.createElement("input");
+
+      input.type = "number";
+
+      input.min = 0;
+
+      input.max = 30;
+
+      input.value =
+        player.stats[stat];
+
+
+      input.oninput = function() {
+
+        let value =
+          Number(input.value) || 0;
+
+        value =
+          Math.max(
+            0,
+            Math.min(30, value)
+          );
+
+        input.value = value;
+
+        player.stats[stat] =
+          value;
+
+        save();
+
+      };
+
+
+      label.append(input);
+
+      stats.append(label);
+
+    }
+  );
+
+
+  section.append(stats);
+
+  card.append(section);
+
+}
+
+
+/* =========================
+   ABILITIES
+========================= */
+
+function createAbilitiesSection(
+  card,
+  player
+) {
+
+  const section =
+    document.createElement("section");
+
+
+  const title =
+    document.createElement("div");
+
+  title.className = "title";
+
+
+  const heading =
+    document.createElement("h2");
+
+  heading.textContent =
+    "Abilities / Moves";
+
+
+  const addButton =
+    document.createElement("button");
+
+  addButton.className =
+    "small";
+
+  addButton.textContent =
+    "＋ Ability";
+
+
+  addButton.onclick =
+    function() {
+
+      player.abilities.push(
+        newAbility()
+      );
+
+      save();
+
+      render();
+
+    };
+
+
+  title.append(
+    heading,
+    addButton
+  );
+
+
+  section.append(title);
+
+
+  if (
+    player.abilities.length === 0
+  ) {
+
+    const empty =
+      document.createElement("div");
+
+    empty.style =
+      "color:var(--muted);text-align:center;font-size:13px;padding:8px";
+
+    empty.textContent =
+      "Nog geen abilities toegevoegd.";
+
+    section.append(empty);
+
+  }
+
+
+  player.abilities.forEach(
+    ability => {
+
+      createAbility(
+        section,
+        player,
+        ability
+      );
+
+    }
+  );
+
+
+  card.append(section);
+
+}
+
+
+/* =========================
+   ABILITY
+========================= */
+
+function createAbility(
+  section,
+  player,
+  ability
+) {
+
+  const box =
+    document.createElement("div");
+
+  box.className = "ability";
+
+
+  /* NAAM */
+
+  const top =
+    document.createElement("div");
+
+  top.className =
+    "ability-top";
+
+
+  const name =
+    document.createElement("input");
+
+  name.placeholder =
+    "Ability naam";
+
+  name.value =
+    ability.name;
+
+
+  name.oninput =
+    function() {
+
+      ability.name =
+        name.value;
+
+      save();
+
+    };
+
+
+  const remove =
+    document.createElement("button");
+
+  remove.className =
+    "icon";
+
+  remove.textContent =
+    "✕";
+
+
+  remove.onclick =
+    function() {
+
+      player.abilities =
+        player.abilities.filter(
+          a => a.id !== ability.id
+        );
+
+      save();
+
+      render();
+
+    };
+
+
+  top.append(
+    name,
+    remove
+  );
+
+
+  box.append(top);
+
+
+  /* DAMAGE + REQUIREMENT */
+
+  const fields =
+    document.createElement("div");
+
+  fields.className =
+    "fields";
+
+
+  const damage =
+    createField(
+      "Damage",
+      "Bijv. 2d6 + 3",
+      ability.damage
+    );
+
+
+  damage.input.oninput =
+    function() {
+
+      ability.damage =
+        damage.input.value;
+
+      save();
+
+    };
+
+
+  const requirement =
+    createField(
+      "Requirement",
+      "Bijv. STR 10",
+      ability.requirement
+    );
+
+
+  requirement.input.oninput =
+    function() {
+
+      ability.requirement =
+        requirement.input.value;
+
+      save();
+
+    };
+
+
+  fields.append(
+    damage.wrapper,
+    requirement.wrapper
+  );
+
+
+  box.append(fields);
+
+
+  /* DESCRIPTION */
+
+  const descriptionLabel =
+    document.createElement("label");
+
+  descriptionLabel.className =
+    "desc";
+
+  descriptionLabel.textContent =
+    "Beschrijving";
+
+
+  const description =
+    document.createElement("textarea");
+
+  description.rows = 2;
+
+  description.placeholder =
+    "Wat doet deze ability?";
+
+  description.value =
+    ability.description;
+
+
+  description.oninput =
+    function() {
+
+      ability.description =
+        description.value;
+
+      save();
+
+    };
+
+
+  descriptionLabel.append(
+    description
+  );
+
+
+  box.append(
+    descriptionLabel
+  );
+
+
+  section.append(box);
+
+}
+
+
+/* =========================
+   FIELD HELPER
+========================= */
+
+function createField(
+  title,
+  placeholder,
+  value
+) {
+
+  const wrapper =
+    document.createElement("label");
+
+  wrapper.textContent =
+    title;
+
+
+  const input =
+    document.createElement("input");
+
+  input.placeholder =
+    placeholder;
+
+  input.value =
+    value;
+
+
+  wrapper.append(input);
+
+
+  return {
+    wrapper,
+    input
+  };
+
+}
+
+
+/* =========================
+   PLAYER TOEVOEGEN
+========================= */
+
+function addPlayer() {
+
+  if (
+    players.length >= MAX
+  ) {
+
+    return;
+
+  }
+
+
+  players.push(
+    newPlayer()
+  );
+
+
+  save();
+
+  render();
+
+}
+
+
+/* =========================
+   BUTTONS
+========================= */
+
+document
+  .getElementById("add")
+  .onclick =
+  addPlayer;
+
+
+document
+  .getElementById("first")
+  .onclick =
+  addPlayer;
+
+
+document
+  .getElementById("reset")
+  .onclick =
+  function() {
+
+    if (
+      confirm(
+        "Alles verwijderen?"
+      )
+    ) {
+
+      players = [];
+
+      save();
+
+      render();
+
+    }
+
+  };
+
+
+/* =========================
+   START
+========================= */
+
+render();
+
+</script>
+
+</body>
+</html>
