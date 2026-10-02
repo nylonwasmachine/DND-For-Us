@@ -563,22 +563,25 @@ button.small {
     }
 
 
-    .role-select{max-width:1100px;margin:30px auto;padding:10px 20px 40px}
-    .role-select-header{text-align:center;margin-bottom:28px}
-    .role-select-header h2{font-size:2rem;margin:0 0 8px}
-    .role-select-header p{color:#b9aed0;margin:0}
-    .role-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
-    .role-card{padding:24px;border:1px solid rgba(255,255,255,.10);border-radius:20px;background:linear-gradient(145deg,rgba(45,31,70,.95),rgba(24,17,39,.98));color:inherit;text-align:left;cursor:pointer;transition:.18s}
-    .role-card:hover{transform:translateY(-4px);border-color:rgba(170,120,255,.55);box-shadow:0 12px 35px rgba(0,0,0,.28)}
-    .role-card h3{margin:8px 0 5px;font-size:1.45rem}
-    .role-character{color:#bda8da;font-size:.88rem;margin-bottom:14px}
-    .role-card p{color:#c4b9d4;line-height:1.45;margin:0 0 16px}
-    .role-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
-    .role-stat{padding:8px 7px;border-radius:10px;background:rgba(0,0,0,.18);text-align:center;font-size:.82rem}
-    .role-stat strong{display:block;font-size:1rem;color:#eee5fa}
-    .role-stat span{color:#a99bb8}
-    .role-rule{margin-top:22px;padding:14px 16px;border-radius:14px;background:rgba(130,80,200,.12);color:#d9cbed;line-height:1.5;text-align:center}
-    @media(max-width:700px){.role-options{grid-template-columns:1fr}}
+
+
+
+    .character-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .role-pill{display:inline-block;margin-top:10px;padding:6px 10px;border-radius:999px;background:#3d2860;color:#d8bdff;font-size:12px}
+    .role-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:18px;z-index:1000}
+    .role-modal{width:min(760px,100%);max-height:90vh;overflow:auto;background:#1a1523;border:1px solid #4b3564;border-radius:18px;padding:20px;box-shadow:0 20px 60px #0009}
+    .role-modal h2{margin:0 0 6px;color:#c9a7ff}
+    .role-modal p{color:#b9aed0}
+    .role-modal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+    .role-choice{padding:16px;border:1px solid #49365d;border-radius:14px;background:#211a2c;text-align:left;color:white;cursor:pointer}
+    .role-choice:hover{border-color:#9d6ee8;background:#2a2038}
+    .role-choice h3{margin:0 0 5px;color:#eee5fa}
+    .role-choice .role-desc{color:#b9aed0;font-size:13px;margin-bottom:10px}
+    .role-choice .mini-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+    .role-choice .mini-stats span{background:#110e17;border-radius:7px;padding:5px;text-align:center;font-size:11px}
+    .role-choice .mini-stats b{display:block;font-size:14px}
+    .role-modal-close{margin-top:14px;background:#3a2a4c}
+    @media(max-width:650px){.role-modal-grid{grid-template-columns:1fr}}
 
 </style>
 </head>
@@ -714,53 +717,18 @@ button.small {
 </div>
 
 
-<div id="teenYearsRoles" class="role-select" style="display:none;">
-  <div class="role-select-header">
-    <h2>Teen Years — Choose your role</h2>
-    <p>2006 • JJK thema • Kies één vaste rol.</p>
+
+<div id="roleModalBackdrop" class="role-modal-backdrop" onclick="closeRoleModal(event)">
+  <div class="role-modal" onclick="event.stopPropagation()">
+    <h2>🎭 Kies een rol</h2>
+    <p id="roleModalTarget"></p>
+    <div class="role-modal-grid" id="roleModalOptions"></div>
+    <button class="role-modal-close" onclick="closeRoleModal()">Sluiten</button>
   </div>
-  <div class="role-options">
-    <button class="role-card" onclick="chooseTeenRole('strongest')">
-      <h3>The Strongest</h3><div class="role-character">Overconfident powerhouse</div>
-      <p>Maximale STR, maar door overconfidence een Intelligence-nerf.</p>
-      <div class="role-stats">
-        <div class="role-stat"><span>STR</span><strong>10</strong></div><div class="role-stat"><span>DEX</span><strong>5</strong></div>
-        <div class="role-stat"><span>CON</span><strong>5</strong></div><div class="role-stat"><span>INT</span><strong>3</strong></div>
-        <div class="role-stat"><span>WIS</span><strong>5</strong></div><div class="role-stat"><span>CHA</span><strong>5</strong></div>
-      </div>
-    </button>
-    <button class="role-card" onclick="chooseTeenRole('curse-eater')">
-      <h3>Curse Eater</h3><div class="role-character">Geto • versatile all-rounder</div>
-      <p>Alles op 5, met extra DEX voor veelzijdigheid.</p>
-      <div class="role-stats">
-        <div class="role-stat"><span>STR</span><strong>5</strong></div><div class="role-stat"><span>DEX</span><strong>8</strong></div>
-        <div class="role-stat"><span>CON</span><strong>5</strong></div><div class="role-stat"><span>INT</span><strong>5</strong></div>
-        <div class="role-stat"><span>WIS</span><strong>5</strong></div><div class="role-stat"><span>CHA</span><strong>5</strong></div>
-      </div>
-    </button>
-    <button class="role-card" onclick="chooseTeenRole('nurse')">
-      <h3>Nurse</h3><div class="role-character">Shoko</div>
-      <p>CON, WIS en INT zijn 9; alle andere stats zijn 2.</p>
-      <div class="role-stats">
-        <div class="role-stat"><span>STR</span><strong>2</strong></div><div class="role-stat"><span>DEX</span><strong>2</strong></div>
-        <div class="role-stat"><span>CON</span><strong>9</strong></div><div class="role-stat"><span>INT</span><strong>9</strong></div>
-        <div class="role-stat"><span>WIS</span><strong>9</strong></div><div class="role-stat"><span>CHA</span><strong>2</strong></div>
-      </div>
-    </button>
-    <button class="role-card" onclick="chooseTeenRole('bag')">
-      <h3>Bag</h3><div class="role-character">Cursed User • Hidden Inventory</div>
-      <p>Alle stats op 3, behalve DEX op 10.</p>
-      <div class="role-stats">
-        <div class="role-stat"><span>STR</span><strong>3</strong></div><div class="role-stat"><span>DEX</span><strong>10</strong></div>
-        <div class="role-stat"><span>CON</span><strong>3</strong></div><div class="role-stat"><span>INT</span><strong>3</strong></div>
-        <div class="role-stat"><span>WIS</span><strong>3</strong></div><div class="role-stat"><span>CHA</span><strong>3</strong></div>
-      </div>
-    </button>
-  </div>
-  <div class="role-rule"><strong>Roll:</strong> D20 + stat modifier. Stat 10 geeft <strong>+3</strong>.</div>
 </div>
 
 <div id="partyCharacters"></div>
+
 
   <div
     id="players"
@@ -1268,9 +1236,10 @@ async function updateCharacter(userId, field, value) {
   } else if (field === "image") {
     patch.image = value;
   } else if (DND_STAT_NAMES.includes(field)) {
+    const statValue = Math.max(0, Math.min(10, Math.trunc(Number(value) || 0)));
     patch.stats = {
       ...(character.stats || {}),
-      [field]: Number(value) || 0
+      [field]: statValue
     };
   }
 
@@ -1379,42 +1348,106 @@ function uploadCharacterImage(userId, input) {
 let selectedDND = null;
 
 
-let selectedTeenRole = null;
 const TEEN_YEARS_ROLES = {
-  strongest:{name:"The Strongest",stats:{STR:10,DEX:5,CON:5,INT:3,WIS:5,CHA:5}},
-  "curse-eater":{name:"Curse Eater",stats:{STR:5,DEX:8,CON:5,INT:5,WIS:5,CHA:5}},
-  nurse:{name:"Nurse",stats:{STR:2,DEX:2,CON:9,INT:9,WIS:9,CHA:2}},
-  bag:{name:"Bag",stats:{STR:3,DEX:10,CON:3,INT:3,WIS:3,CHA:3}}
+  strongest:{
+    name:"The Strongest",
+    character:"Overconfident powerhouse",
+    description:"STR maximaal, maar INT is 3.",
+    stats:{STR:10,DEX:5,CON:5,INT:3,WIS:5,CHA:5}
+  },
+  "curse-eater":{
+    name:"Curse Eater",
+    character:"Geto",
+    description:"All-rounder met extra DEX.",
+    stats:{STR:5,DEX:8,CON:5,INT:5,WIS:5,CHA:5}
+  },
+  nurse:{
+    name:"Nurse",
+    character:"Shoko",
+    description:"CON, WIS en INT zijn 9.",
+    stats:{STR:2,DEX:2,CON:9,INT:9,WIS:9,CHA:2}
+  },
+  bag:{
+    name:"Bag",
+    character:"Cursed User • Hidden Inventory",
+    description:"Alle stats 3, behalve DEX 10.",
+    stats:{STR:3,DEX:10,CON:3,INT:3,WIS:3,CHA:3}
+  }
 };
 
-async function chooseTeenRole(roleId){
-  if(!TEEN_YEARS_ROLES[roleId] || !currentUser || !currentParty)return;
-  selectedTeenRole=roleId;
-  const {error}=await supabase.from("party_characters")
-    .update({role:roleId})
-    .eq("party_id",currentParty.id)
-    .eq("user_id",currentUser.id);
-  if(error){
-    alert("Rol kiezen mislukt: "+error.message);
-    selectedTeenRole=null;
+let roleTargetUserId = null;
+
+function openRoleModal(userId){
+  const character = partyCharacters.find(c => c.user_id === userId);
+  const member = currentPartyMembers.find(m => m.id === userId);
+  if(!character || !member) return;
+
+  if(!isDM() && currentUser.id !== userId){
+    alert("Je kunt alleen de rol van jezelf kiezen. De DM kan de rol van iedereen kiezen.");
     return;
   }
-  document.getElementById("teenYearsRoles").style.display="none";
-  document.getElementById("partyCharacters").style.display="";
-  await loadPartyCharacters();
+
+  roleTargetUserId = userId;
+  document.getElementById("roleModalTarget").textContent =
+    "Voor: " + (character.nickname || "Nieuwe held") + " (" + member.username + ")";
+
+  document.getElementById("roleModalOptions").innerHTML =
+    Object.entries(TEEN_YEARS_ROLES).map(([id, role]) => `
+      <button class="role-choice" onclick="applyTeenRole('${id}')">
+        <h3>${role.name}</h3>
+        <div class="role-desc">${role.character} — ${role.description}</div>
+        <div class="mini-stats">
+          ${DND_STAT_NAMES.map(stat => `<span>${stat}<b>${role.stats[stat]}</b></span>`).join("")}
+        </div>
+      </button>
+    `).join("");
+
+  document.getElementById("roleModalBackdrop").style.display = "flex";
+}
+
+function closeRoleModal(event){
+  if(event && event.target !== document.getElementById("roleModalBackdrop")) return;
+  roleTargetUserId = null;
+  document.getElementById("roleModalBackdrop").style.display = "none";
+}
+
+async function applyTeenRole(roleId){
+  if(!roleTargetUserId || !TEEN_YEARS_ROLES[roleId]) return;
+
+  const character = partyCharacters.find(c => c.user_id === roleTargetUserId);
+  if(!character) return;
+
+  if(!isDM() && currentUser.id !== roleTargetUserId){
+    alert("Je kunt alleen je eigen rol kiezen.");
+    return;
+  }
+
+  const stats = TEEN_YEARS_ROLES[roleId].stats;
+
+  const {error} = await supabaseClient
+    .from("party_characters")
+    .update({role: roleId, stats})
+    .eq("party_id", currentParty.id)
+    .eq("user_id", roleTargetUserId);
+
+  if(error){
+    alert("Rol kiezen mislukt: " + error.message);
+    return;
+  }
+
+  character.role = roleId;
+  character.stats = {...stats};
+  closeRoleModal();
   renderPartyCharacters();
 }
 
-function showTeenYearsRoles(){
-  document.getElementById("dndSelect").style.display="none";
-  document.getElementById("partyCharacters").style.display="none";
-  document.getElementById("teenYearsRoles").style.display="";
-}
 
 function chooseDND(dndId) {
   if (dndId !== "teen-years") return;
   selectedDND = dndId;
-  showTeenYearsRoles();
+  document.getElementById("dndSelect").style.display = "none";
+  document.getElementById("partyCharacters").style.display = "";
+  renderPartyCharacters();
 }
 
 function showDNDSelection() {
@@ -1439,12 +1472,6 @@ function renderPartyCharacters() {
   // Eerst een DND kiezen nadat de party gestart is.
   if (!selectedDND) {
     showDNDSelection();
-    container.innerHTML = "";
-    return;
-  }
-
-  if (selectedDND === "teen-years" && !selectedTeenRole) {
-    showTeenYearsRoles();
     container.innerHTML = "";
     return;
   }
@@ -1524,13 +1551,23 @@ function renderPartyCharacters() {
                   Dit is alleen de naam van je D&D-personage. Je echte accountnaam blijft apart.
                 </div>
 
+                <div class="character-actions">
+                  <button class="small" onclick="openRoleModal('${member.id}')">🎭 Rol</button>
+                  ${character.role && TEEN_YEARS_ROLES[character.role]
+                    ? `<span class="role-pill">Rol: ${TEEN_YEARS_ROLES[character.role].name}</span>`
+                    : `<span class="role-pill">Nog geen rol</span>`}
+                </div>
+
                 <div class="character-stats" style="margin-top:14px">
                   ${DND_STAT_NAMES.map(stat => `
                     <div class="character-stat">
                       <label>${stat}</label>
                       <input
                         type="number"
-                        value="${Number(stats[stat]) || 0}"
+                        min="0"
+                        max="10"
+                        step="1"
+                        value="${Math.max(0, Math.min(10, Number(stats[stat]) || 0))}"
                         ${editable ? "" : "disabled"}
                         onchange="updateCharacter('${member.id}', '${stat}', this.value)"
                       >
@@ -2444,6 +2481,9 @@ function render() {
 
                 <input
                   type="number"
+                  min="0"
+                  max="10"
+                  step="1"
                   value="${
                     Number(
                       player.stats[stat]
@@ -2641,7 +2681,7 @@ function statChanged(
   if(player) {
 
     player.stats[stat] =
-      Number(value) || 0;
+      Math.max(0, Math.min(10, Math.trunc(Number(value) || 0)));
 
     save();
 
