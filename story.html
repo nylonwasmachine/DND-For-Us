@@ -1,0 +1,5823 @@
+Ja, ik zie precies wat er mis is. 😅
+
+De SQL is per ongeluk onderaan je index.html geplakt, ná </html>. Daarom laat de browser die SQL als gewone tekst op je site zien.
+
+Het hoort zo te zijn:
+
+index.html → alleen de website
+teen-years-role-button-security.sql → alleen SQL voor Supabase
+
+Dus je hoeft geen SQL op je website te zetten.
+
+Oplossing
+
+Open je index.html en verwijder vanaf:
+
+-- Ook bij nieuwe characters worden stats veilig op 0 t/m 20 gehouden.
+
+helemaal tot en met:
+
+end $$;
+
+Alles daarna hoort weg. Je bestand moet eindigen met:
+
+</script>
+
+</body>
+</html>
+
+De SQL zelf moet je alleen in Supabase → SQL Editor uitvoeren.
+
+Ik zie ook dat dit door mijn vorige bestand kwam; mijn fout.
+
+kan je dan ook de stats van de rollen aanpassen dus alles dubbelt du stel het was een10 is het nu een 20 5 is een 10 zo door en ook verander getos CHA naar 20 en gojos/the strongest zijn CHA naar 15
+
+Zeker. Ik heb de rollen aangepast naar de 0–20-schaal:
+
+The Strongest / Gojō: STR 20, DEX 10, CON 10, INT 6, WIS 10, CHA 15
+Curse Eater / Geto: STR 10, DEX 16, CON 10, INT 10, WIS 10, CHA 20
+Nurse / Shoko: STR 4, DEX 4, CON 18, INT 18, WIS 18, CHA 4
+Bag: STR 6, DEX 20, CON 6, INT 6, WIS 6, CHA 6
+
+Ook heb ik de maximale statwaarde in de website op 20 gezet en de SQL die per ongeluk onderaan de HTML stond verwijderd.
+
+Download de aangepaste HTML
+
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DND For Us</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #100d18;
+  color: white;
+}
+
+/* =========================
+   LOGIN
+========================= */
+
+#authPage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.auth-box {
+  width: 100%;
+  max-width: 420px;
+  background: #1a1523;
+  border: 1px solid #3a2a4c;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 10px 40px #0008;
+}
+
+.auth-box h1 {
+  text-align: center;
+  color: #c9a7ff;
+  margin-top: 0;
+}
+
+.auth-box h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.auth-box input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid #49365d;
+  background: #0f0c15;
+  color: white;
+  font-size: 15px;
+}
+
+.auth-box button {
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #6d3bb5;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 5px;
+}
+
+.auth-box button:hover {
+  background: #824bd0;
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: 18px;
+  color: #aaa;
+}
+
+.auth-switch button {
+  width: auto;
+  background: none;
+  color: #c9a7ff;
+  padding: 0;
+}
+
+#authMessage {
+  text-align: center;
+  margin-top: 15px;
+  color: #ffb3b3;
+}
+
+/* =========================
+   APP
+========================= */
+
+#app {
+  display: none;
+}
+
+header {
+  padding: 20px;
+  text-align: center;
+  background: #1b1428;
+  border-bottom: 1px solid #3b2a52;
+}
+
+h1 {
+  margin: 0 0 12px;
+  color: #c9a7ff;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 9px 13px;
+  background: #6d3bb5;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover {
+  background: #824bd0;
+}
+
+button.danger {
+  background: #8d3030;
+}
+
+button.small {
+  padding: 6px 9px;
+  font-size: 12px;
+}
+
+.user-info {
+  margin-bottom: 15px;
+  color: #aaa;
+}
+
+.role {
+  display: inline-block;
+  background: #3d2860;
+  color: #d8bdff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-left: 5px;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 20px auto;
+  padding: 0 14px;
+}
+
+.players {
+  display: grid;
+  gap: 20px;
+}
+
+.player {
+  background: #1a1523;
+  border: 1px solid #3a2a4c;
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.player-header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.player-header input {
+  flex: 1;
+  font-size: 20px;
+  font-weight: bold;
+  background: #0f0c15;
+  color: white;
+  border: 1px solid #49365d;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.player-overview {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 20px;
+}
+
+.image-box {
+  text-align: center;
+}
+
+.character-image {
+  width: 160px;
+  height: 160px;
+  border-radius: 12px;
+  border: 2px solid #60477a;
+  background: #0f0c15;
+  object-fit: cover;
+  display: block;
+  margin: auto;
+}
+
+.image-placeholder {
+  width: 160px;
+  height: 160px;
+  border-radius: 12px;
+  border: 2px dashed #60477a;
+  background: #0f0c15;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+  font-size: 46px;
+}
+
+.image-controls {
+  margin-top: 10px;
+}
+
+.file-label {
+  display: inline-block;
+  background: #6d3bb5;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.file-input {
+  display: none;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.stat {
+  background: #110e17;
+  border: 1px solid #3d2c4e;
+  border-radius: 9px;
+  padding: 10px;
+}
+
+.stat label {
+  display: block;
+  color: #bfaed0;
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+
+.stat input {
+  width: 100%;
+  background: #211a2c;
+  color: white;
+  border: 1px solid #4a385b;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 18px;
+}
+
+.section-title {
+  color: #c9a7ff;
+}
+
+.abilities {
+  display: grid;
+  gap: 10px;
+}
+
+.ability {
+  background: #120f18;
+  border: 1px solid #3d2c4e;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.ability-grid {
+  display: grid;
+  grid-template-columns: 1.2fr .7fr .9fr;
+  gap: 8px;
+}
+
+.ability input,
+.ability textarea {
+  width: 100%;
+  background: #211a2c;
+  color: white;
+  border: 1px solid #4a385b;
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.ability textarea {
+  min-height: 65px;
+  margin-top: 8px;
+  resize: vertical;
+}
+
+.empty {
+  text-align: center;
+  color: #8e8298;
+  padding: 40px;
+}
+
+
+.party-panel{background:#1a1523;border:1px solid #3a2a4c;border-radius:14px;padding:18px;margin-bottom:20px}
+.party-panel h2{margin-top:0;color:#c9a7ff}
+.party-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px}
+.party-actions input{flex:1;min-width:180px;background:#0f0c15;color:white;border:1px solid #49365d;border-radius:8px;padding:10px}
+.party-members{margin-top:10px;color:#bfaed0}
+.party-code{display:inline-block;font-family:monospace;letter-spacing:2px;background:#2a1d3a;padding:5px 8px;border-radius:6px;margin-left:6px}
+
+@media(max-width:650px) {
+  .player-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ability-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.party-characters{
+  display:grid;
+  gap:20px;
+  margin-top:20px;
+}
+.character-card{
+  background:#1a1523;
+  border:1px solid #3a2a4c;
+  border-radius:14px;
+  padding:18px;
+}
+.character-card h2{
+  margin-top:0;
+  color:#c9a7ff;
+}
+.character-top{
+  display:grid;
+  grid-template-columns:180px 1fr;
+  gap:20px;
+}
+.character-photo-wrap{text-align:center}
+.character-photo{
+  width:170px;
+  height:170px;
+  object-fit:cover;
+  border-radius:12px;
+  border:2px solid #60477a;
+  background:#0f0c15;
+}
+.character-placeholder{
+  width:170px;
+  height:170px;
+  margin:auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:2px dashed #60477a;
+  border-radius:12px;
+  background:#0f0c15;
+  font-size:46px;
+}
+.character-photo input{display:none}
+.character-photo label{
+  display:inline-block;
+  margin-top:10px;
+  background:#6d3bb5;
+  padding:8px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+}
+.character-owner{
+  color:#9e91aa;
+  font-size:13px;
+  margin-bottom:10px;
+}
+.character-nickname{
+  width:100%;
+  background:#0f0c15;
+  color:white;
+  border:1px solid #49365d;
+  border-radius:8px;
+  padding:10px;
+  font-size:20px;
+  font-weight:bold;
+}
+.character-stats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+.character-stat{
+  background:#110e17;
+  border:1px solid #3d2c4e;
+  border-radius:9px;
+  padding:10px;
+}
+.character-stat label{
+  display:block;
+  color:#bfaed0;
+  font-size:12px;
+  margin-bottom:5px;
+}
+.character-stat input{
+  width:100%;
+  background:#211a2c;
+  color:white;
+  border:1px solid #4a385b;
+  border-radius:6px;
+  padding:8px;
+  font-size:18px;
+}
+ .character-stat .stat-modifier{
+  margin-top:6px;
+  color:#c9a7ff;
+  font-weight:bold;
+  font-size:13px;
+}
+.character-stat .stat-hint{
+  color:#8e8298;
+  font-size:11px;
+  margin-top:3px;
+}
+.dnd-stat-rules{
+  margin-top:18px;
+  background:#14101c;
+  border:1px solid #3d2c4e;
+  border-radius:12px;
+  padding:14px;
+}
+.dnd-stat-rules h3{margin:0 0 8px;color:#c9a7ff}
+.dnd-stat-rules-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.dnd-rule{background:#1b1624;border-radius:8px;padding:9px;color:#bfaed0;font-size:12px}
+.dnd-rule b{color:#fff}
+.casts{
+  display:grid;
+  gap:10px;
+}
+.cast{
+  background:#120f18;
+  border:1px solid #3d2c4e;
+  border-radius:10px;
+  padding:12px;
+}
+.cast-grid{
+  display:grid;
+  grid-template-columns:1.2fr .7fr .9fr;
+  gap:8px;
+}
+.cast input,.cast textarea{
+  width:100%;
+  background:#211a2c;
+  color:white;
+  border:1px solid #4a385b;
+  border-radius:6px;
+  padding:8px;
+}
+.cast textarea{
+  min-height:60px;
+  margin-top:8px;
+  resize:vertical;
+}
+.readonly-note{
+  color:#8e8298;
+  font-size:12px;
+  margin-top:8px;
+}
+@media(max-width:650px){
+  .character-top{grid-template-columns:1fr}
+  .character-stats{grid-template-columns:repeat(2,1fr)}
+  .cast-grid{grid-template-columns:1fr}
+}
+
+
+    /* DND SELECT */
+    .dnd-select {
+      max-width: 1100px;
+      margin: 30px auto;
+      padding: 10px 20px 40px;
+    }
+    .dnd-select-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .dnd-select-header h2 {
+      font-size: 2rem;
+      margin: 0 0 8px;
+    }
+    .dnd-select-header p {
+      color: #b9aed0;
+      margin: 0;
+    }
+    .dnd-options {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .dnd-option {
+      position: relative;
+      min-height: 250px;
+      padding: 26px;
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 20px;
+      background: linear-gradient(145deg, rgba(45,31,70,.95), rgba(24,17,39,.98));
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+    .dnd-option:hover {
+      transform: translateY(-4px);
+      border-color: rgba(170,120,255,.55);
+      box-shadow: 0 12px 35px rgba(0,0,0,.28);
+    }
+    .dnd-option.disabled {
+      cursor: default;
+      opacity: .58;
+    }
+    .dnd-option.disabled:hover {
+      transform: none;
+      border-color: rgba(255,255,255,.10);
+      box-shadow: none;
+    }
+    .dnd-option .dnd-number {
+      font-size: .82rem;
+      color: #a991c7;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .dnd-option h3 {
+      font-size: 1.55rem;
+      margin: 12px 0 8px;
+    }
+    .dnd-option p {
+      color: #c4b9d4;
+      line-height: 1.5;
+      margin: 0;
+    }
+    .dnd-option .dnd-badge {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(130,80,200,.18);
+      color: #d9c7ff;
+      font-size: .8rem;
+      font-weight: 700;
+    }
+    .dnd-option.teen-years {
+      border-color: rgba(166,116,255,.38);
+      background:
+        radial-gradient(circle at 80% 15%, rgba(124,72,190,.22), transparent 38%),
+        linear-gradient(145deg, rgba(52,31,78,.98), rgba(21,15,35,.98));
+    }
+    .teen-theme {
+      margin-top: 12px;
+      color: #e6d9ff;
+      font-size: .9rem;
+      font-weight: 700;
+    }
+    @media (max-width: 850px) {
+      .dnd-options {
+        grid-template-columns: 1fr;
+      }
+    }
+
+
+
+
+
+    .character-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .role-pill{display:inline-block;margin-top:10px;padding:6px 10px;border-radius:999px;background:#3d2860;color:#d8bdff;font-size:12px}
+    .role-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:18px;z-index:1000}
+    .role-modal{width:min(760px,100%);max-height:90vh;overflow:auto;background:#1a1523;border:1px solid #4b3564;border-radius:18px;padding:20px;box-shadow:0 20px 60px #0009}
+    .role-modal h2{margin:0 0 6px;color:#c9a7ff}
+    .role-modal p{color:#b9aed0}
+    .role-modal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+    .role-choice{padding:16px;border:1px solid #49365d;border-radius:14px;background:#211a2c;text-align:left;color:white;cursor:pointer}
+    .role-choice:hover{border-color:#9d6ee8;background:#2a2038}
+    .role-choice h3{margin:0 0 5px;color:#eee5fa}
+    .role-choice .role-desc{color:#b9aed0;font-size:13px;margin-bottom:10px}
+    .role-choice .mini-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+    .role-choice .mini-stats span{background:#110e17;border-radius:7px;padding:5px;text-align:center;font-size:11px}
+    .role-choice .mini-stats b{display:block;font-size:14px}
+    .role-modal-close{margin-top:14px;background:#3a2a4c}
+    @media(max-width:650px){.role-modal-grid{grid-template-columns:1fr}}
+
+</style>
+</head>
+
+<body>
+
+<!-- =========================
+     LOGIN / REGISTER
+========================= -->
+
+<div id="authPage">
+
+  <div class="auth-box">
+
+    <h1>⚔️ DND For Us</h1>
+
+    <h2 id="authTitle">Inloggen</h2>
+
+    <input
+      id="username"
+      type="text"
+      placeholder="Username"
+      style="display:none"
+    >
+
+    <input
+      id="email"
+      type="email"
+      placeholder="Email"
+    >
+
+    <input
+      id="password"
+      type="password"
+      placeholder="Wachtwoord"
+    >
+
+    <button onclick="handleAuth()">
+      <span id="authButtonText">Inloggen</span>
+    </button>
+
+    <div id="authMessage"></div>
+
+    <div class="auth-switch">
+
+      <span id="switchText">
+        Nog geen account?
+      </span>
+
+      <button onclick="toggleAuthMode()">
+        <span id="switchButton">
+          Account maken
+        </span>
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================
+     APP
+========================= -->
+
+<div id="app">
+
+<header>
+
+  <h1>⚔️ DND For Us</h1>
+
+  <div class="user-info">
+
+    Ingelogd als
+    <b id="currentUsername"></b>
+
+    <span
+      class="role"
+      id="currentRole"
+    ></span>
+
+  </div>
+
+  <button onclick="addPlayer()">
+    ＋ Player
+  </button>
+
+  <button
+    onclick="logout()"
+    class="danger"
+  >
+    Uitloggen
+  </button>
+
+</header>
+
+
+<div class="container">
+
+  <div id="partyPanel" class="party-panel"></div>
+
+  
+<div id="dndSelect" class="dnd-select" style="display:none;">
+  <div class="dnd-select-header">
+    <h2>Choose DND</h2>
+    <p>Kies welk avontuur je met deze party wilt spelen.</p>
+  </div>
+
+  <div class="dnd-options">
+    <button class="dnd-option teen-years" onclick="chooseDND('teen-years')">
+      <div class="dnd-number">DND 01</div>
+      <h3>Teen Years</h3>
+      <div class="teen-theme">2006 • JJK thema</div>
+      <p>De eerste speelbare DND. Een donkere urban-fantasy setting met de sfeer van 2006.</p>
+      <span class="dnd-badge">Beschikbaar</span>
+    </button>
+
+    <button class="dnd-option disabled" disabled>
+      <div class="dnd-number">DND 02</div>
+      <h3>Youngins</h3>
+      <p>Een tweede avontuur dat later wordt toegevoegd.</p>
+      <span class="dnd-badge">Coming soon</span>
+    </button>
+
+    <button class="dnd-option disabled" disabled>
+      <div class="dnd-number">DND 03</div>
+      <h3>Revived</h3>
+      <p>Een derde avontuur dat later wordt toegevoegd.</p>
+      <span class="dnd-badge">Coming soon</span>
+    </button>
+  </div>
+</div>
+
+
+
+<div id="roleModalBackdrop" class="role-modal-backdrop" onclick="closeRoleModal(event)">
+  <div class="role-modal" onclick="event.stopPropagation()">
+    <h2>🎭 Kies een rol</h2>
+    <p id="roleModalTarget"></p>
+    <div class="role-modal-grid" id="roleModalOptions"></div>
+    <button class="role-modal-close" onclick="closeRoleModal()">Sluiten</button>
+  </div>
+</div>
+
+<div id="partyCharacters"></div>
+
+
+  <div
+    id="players"
+    class="players"
+  ></div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =========================
+   SUPABASE
+========================= */
+
+const SUPABASE_URL =
+  "https://smrmzoljzglgqzdjvqjl.supabase.co";
+
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtcm16b2xqemdsZ3F6ZGp2cWpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA4NjgwNTgsImV4cCI6MjEwNjQ0NDA1OH0.JBBu1_-X5X31cDx0URk2o1xIHJF55REsMhiiqJR-XTk";
+
+
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+/* =========================
+   AUTH
+========================= */
+
+let registerMode = false;
+
+let currentUser = null;
+
+let currentProfile = null;
+
+
+/* =========================
+   AUTH MODE
+========================= */
+
+function toggleAuthMode() {
+
+  registerMode =
+    !registerMode;
+
+
+  const title =
+    document.getElementById(
+      "authTitle"
+    );
+
+  const username =
+    document.getElementById(
+      "username"
+    );
+
+  const button =
+    document.getElementById(
+      "authButtonText"
+    );
+
+  const switchText =
+    document.getElementById(
+      "switchText"
+    );
+
+  const switchButton =
+    document.getElementById(
+      "switchButton"
+    );
+
+
+  if(registerMode) {
+
+    title.textContent =
+      "Account maken";
+
+    username.style.display =
+      "block";
+
+    button.textContent =
+      "Account maken";
+
+    switchText.textContent =
+      "Heb je al een account?";
+
+    switchButton.textContent =
+      "Inloggen";
+
+  } else {
+
+    title.textContent =
+      "Inloggen";
+
+    username.style.display =
+      "none";
+
+    button.textContent =
+      "Inloggen";
+
+    switchText.textContent =
+      "Nog geen account?";
+
+    switchButton.textContent =
+      "Account maken";
+
+  }
+
+}
+
+
+/* =========================
+   REGISTER / LOGIN
+========================= */
+
+async function handleAuth() {
+
+  const email =
+    document
+      .getElementById("email")
+      .value
+      .trim();
+
+  const password =
+    document
+      .getElementById("password")
+      .value;
+
+  const username =
+    document
+      .getElementById("username")
+      .value
+      .trim();
+
+
+  const message =
+    document.getElementById(
+      "authMessage"
+    );
+
+
+  message.textContent =
+    "Even bezig...";
+
+
+  if(!email || !password) {
+
+    message.textContent =
+      "Vul email en wachtwoord in.";
+
+    return;
+
+  }
+
+
+  if(registerMode) {
+
+    if(!username) {
+
+      message.textContent =
+        "Vul een username in.";
+
+      return;
+
+    }
+
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient.auth.signUp({
+
+        email: email,
+
+        password: password,
+
+        options: {
+
+          data: {
+
+            username:
+              username
+
+          }
+
+        }
+
+      });
+
+
+    if(error) {
+
+      message.textContent =
+        error.message;
+
+      return;
+
+    }
+
+
+    message.style.color =
+      "#9dffb0";
+
+    message.textContent =
+      "Account aangemaakt! Controleer eventueel je email.";
+
+  } else {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient.auth.signInWithPassword({
+
+        email: email,
+
+        password: password
+
+      });
+
+
+    if(error) {
+
+      message.style.color =
+        "#ffb3b3";
+
+      message.textContent =
+        error.message;
+
+      return;
+
+    }
+
+
+    await loadUser();
+
+  }
+
+}
+
+
+/* =========================
+   USER LADEN
+========================= */
+
+async function loadUser() {
+
+  const {
+    data: {
+      user
+    }
+  } =
+    await supabaseClient.auth.getUser();
+
+
+  if(!user) {
+
+    showAuth();
+
+    return;
+
+  }
+
+
+  currentUser =
+    user;
+
+
+  const {
+    data: profile,
+    error
+  } =
+    await supabaseClient
+
+      .from("profiles")
+
+      .select("*")
+
+      .eq("id", user.id)
+
+      .single();
+
+
+  if(error) {
+
+    console.error(error);
+
+    return;
+
+  }
+
+
+  currentProfile =
+    profile;
+
+
+  document
+    .getElementById(
+      "currentUsername"
+    )
+    .textContent =
+      profile.username;
+
+
+  document
+    .getElementById(
+      "currentRole"
+    )
+    .textContent =
+      profile.role;
+
+
+  showApp();
+
+}
+
+
+/* =========================
+   PAGINA TONEN
+========================= */
+
+function showApp() {
+
+  document
+    .getElementById(
+      "authPage"
+    )
+    .style.display =
+      "none";
+
+
+  document
+    .getElementById(
+      "app"
+    )
+    .style.display =
+      "block";
+
+
+  render();
+  loadParty();
+
+}
+
+
+function showAuth() {
+
+  document
+    .getElementById(
+      "authPage"
+    )
+    .style.display =
+      "flex";
+
+
+  document
+    .getElementById(
+      "app"
+    )
+    .style.display =
+      "none";
+
+}
+
+
+/* =========================
+   LOGOUT
+========================= */
+
+async function logout() {
+
+  await supabaseClient.auth.signOut();
+
+  currentUser = null;
+
+  currentProfile = null;
+
+  showAuth();
+
+}
+
+
+/* =========================
+   AUTH STATE
+========================= */
+
+supabaseClient.auth.onAuthStateChange(
+  async (event, session) => {
+
+    if(session) {
+
+      await loadUser();
+
+    } else {
+
+      showAuth();
+
+    }
+
+  }
+);
+
+
+
+/* =========================
+   PARTY D&D CHARACTERS
+========================= */
+
+let partyCharacters = [];
+let partyCharacterChannel = null;
+
+const DND_STAT_NAMES = ["STR","DEX","CON","INT","WIS","CHA"];
+
+// Officiële D&D ability-score modifier: floor((score - 10) / 2).
+function getAbilityModifier(score) {
+  const n = Math.trunc(Number(score) || 0);
+  return Math.floor((n - 10) / 2);
+}
+
+function formatModifier(modifier) {
+  return modifier >= 0 ? `+${modifier}` : `${modifier}`;
+}
+
+function clampStat(value) {
+  return Math.max(0, Math.min(20, Math.trunc(Number(value) || 0)));
+}
+
+function defaultCharacter(userId) {
+  return {
+    party_id: currentParty.id,
+    user_id: userId,
+    nickname: "Nieuwe held",
+    image: "",
+    stats: {
+      STR: 10, DEX: 10, CON: 10,
+      INT: 10, WIS: 10, CHA: 10
+    },
+    casts: []
+  };
+}
+
+function isDM() {
+  return currentUser && currentParty?.dm_id === currentUser.id;
+}
+
+function canEditNickname(character) {
+  return currentUser && currentUser.id === character.user_id;
+}
+
+function canEditCharacter(character) {
+  return isDM();
+}
+
+async function ensurePartyCharacters() {
+  if (!currentParty || currentParty.status !== "started") return;
+
+  const memberIds = currentPartyMembers.map(m => m.id);
+
+  for (const userId of memberIds) {
+    const existing = partyCharacters.find(c => c.user_id === userId);
+    if (existing) continue;
+
+    const character = defaultCharacter(userId);
+    const { error } = await supabaseClient
+      .from("party_characters")
+      .insert(character);
+
+    if (error && error.code !== "23505") {
+      console.error("Character aanmaken mislukt:", error);
+    }
+  }
+
+  await loadPartyCharacters();
+}
+
+async function loadPartyCharacters() {
+  if (!currentParty || currentParty.status !== "started") {
+    partyCharacters = [];
+    renderPartyCharacters();
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("party_characters")
+    .select("*")
+    .eq("party_id", currentParty.id);
+
+  if (error) {
+    console.error("Characters laden mislukt:", error);
+    return;
+  }
+
+  partyCharacters = data || [];
+  renderPartyCharacters();
+}
+
+async function updateCharacter(userId, field, value) {
+  const character = partyCharacters.find(c => c.user_id === userId);
+  if (!character) return;
+
+  // Spelers mogen uitsluitend hun eigen nickname wijzigen.
+  if (field === "nickname") {
+    if (!canEditNickname(character) && !isDM()) return;
+  } else if (!canEditCharacter(character)) {
+    return;
+  }
+
+  let patch = {};
+
+  if (field === "nickname") {
+    patch.nickname = value;
+  } else if (field === "image") {
+    patch.image = value;
+  } else if (DND_STAT_NAMES.includes(field)) {
+    const statValue = clampStat(value);
+    patch.stats = {
+      ...(character.stats || {}),
+      [field]: statValue
+    };
+  }
+
+  if (!Object.keys(patch).length) return;
+
+  const { error } = await supabaseClient
+    .from("party_characters")
+    .update(patch)
+    .eq("party_id", currentParty.id)
+    .eq("user_id", userId);
+
+  if (error) {
+    alert("Opslaan mislukt: " + error.message);
+    return;
+  }
+
+  Object.assign(character, patch);
+  renderPartyCharacters();
+}
+
+async function addCast(userId) {
+  const character = partyCharacters.find(c => c.user_id === userId);
+  if (!character || !canEditCharacter(character)) return;
+
+  const casts = Array.isArray(character.casts) ? [...character.casts] : [];
+  casts.push({
+    id: crypto.randomUUID(),
+    name: "Nieuwe cast",
+    damage: "0",
+    requirement: "Geen",
+    description: ""
+  });
+
+  const { error } = await supabaseClient
+    .from("party_characters")
+    .update({ casts })
+    .eq("party_id", currentParty.id)
+    .eq("user_id", userId);
+
+  if (error) {
+    alert("Cast toevoegen mislukt: " + error.message);
+    return;
+  }
+
+  character.casts = casts;
+  renderPartyCharacters();
+}
+
+async function updateCast(userId, castId, field, value) {
+  const character = partyCharacters.find(c => c.user_id === userId);
+  if (!character || !canEditCharacter(character)) return;
+
+  const casts = (character.casts || []).map(c =>
+    c.id === castId ? {...c, [field]: value} : c
+  );
+
+  const { error } = await supabaseClient
+    .from("party_characters")
+    .update({ casts })
+    .eq("party_id", currentParty.id)
+    .eq("user_id", userId);
+
+  if (error) {
+    alert("Cast opslaan mislukt: " + error.message);
+    return;
+  }
+
+  character.casts = casts;
+}
+
+async function deleteCast(userId, castId) {
+  const character = partyCharacters.find(c => c.user_id === userId);
+  if (!character || !canEditCharacter(character)) return;
+
+  const casts = (character.casts || []).filter(c => c.id !== castId);
+
+  const { error } = await supabaseClient
+    .from("party_characters")
+    .update({ casts })
+    .eq("party_id", currentParty.id)
+    .eq("user_id", userId);
+
+  if (error) {
+    alert("Cast verwijderen mislukt: " + error.message);
+    return;
+  }
+
+  character.casts = casts;
+  renderPartyCharacters();
+}
+
+function uploadCharacterImage(userId, input) {
+  const file = input.files?.[0];
+  if (!file) return;
+
+  compressImage(file, async image => {
+    await updateCharacter(userId, "image", image);
+  });
+}
+
+
+// ===============================
+// DND SELECTION
+// ===============================
+
+let selectedDND = null;
+
+
+const TEEN_YEARS_ROLES = {
+  strongest:{
+    name:"The Strongest",
+    character:"Overconfident powerhouse",
+    description:"STR 20, maar INT is 6.",
+    stats:{STR:20,DEX:10,CON:10,INT:6,WIS:10,CHA:15}
+  },
+  "curse-eater":{
+    name:"Curse Eater",
+    character:"Geto",
+    description:"All-rounder met extra DEX en CHA 20.",
+    stats:{STR:10,DEX:16,CON:10,INT:10,WIS:10,CHA:20}
+  },
+  nurse:{
+    name:"Nurse",
+    character:"Shoko",
+    description:"CON, WIS en INT zijn 18.",
+    stats:{STR:4,DEX:4,CON:18,INT:18,WIS:18,CHA:4}
+  },
+  bag:{
+    name:"Bag",
+    character:"Cursed User • Hidden Inventory",
+    description:"Alle stats 6, behalve DEX 20.",
+    stats:{STR:6,DEX:20,CON:6,INT:6,WIS:6,CHA:6}
+  }
+};
+
+let roleTargetUserId = null;
+
+function openRoleModal(userId){
+  const character = partyCharacters.find(c => c.user_id === userId);
+  const member = currentPartyMembers.find(m => m.id === userId);
+  if(!character || !member) return;
+
+  if(!isDM() && currentUser.id !== userId){
+    alert("Je kunt alleen de rol van jezelf kiezen. De DM kan de rol van iedereen kiezen.");
+    return;
+  }
+
+  roleTargetUserId = userId;
+  document.getElementById("roleModalTarget").textContent =
+    "Voor: " + (character.nickname || "Nieuwe held") + " (" + member.username + ")";
+
+  document.getElementById("roleModalOptions").innerHTML =
+    Object.entries(TEEN_YEARS_ROLES).map(([id, role]) => `
+      <button class="role-choice" onclick="applyTeenRole('${id}')">
+        <h3>${role.name}</h3>
+        <div class="role-desc">${role.character} — ${role.description}</div>
+        <div class="mini-stats">
+          ${DND_STAT_NAMES.map(stat => `<span>${stat}<b>${role.stats[stat]}</b></span>`).join("")}
+        </div>
+      </button>
+    `).join("");
+
+  document.getElementById("roleModalBackdrop").style.display = "flex";
+}
+
+function closeRoleModal(event){
+  if(event && event.target !== document.getElementById("roleModalBackdrop")) return;
+  roleTargetUserId = null;
+  document.getElementById("roleModalBackdrop").style.display = "none";
+}
+
+async function applyTeenRole(roleId){
+  if(!roleTargetUserId || !TEEN_YEARS_ROLES[roleId]) return;
+
+  const character = partyCharacters.find(c => c.user_id === roleTargetUserId);
+  if(!character) return;
+
+  if(!isDM() && currentUser.id !== roleTargetUserId){
+    alert("Je kunt alleen je eigen rol kiezen.");
+    return;
+  }
+
+  const stats = TEEN_YEARS_ROLES[roleId].stats;
+
+  const {error} = await supabaseClient
+    .from("party_characters")
+    .update({role: roleId, stats})
+    .eq("party_id", currentParty.id)
+    .eq("user_id", roleTargetUserId);
+
+  if(error){
+    alert("Rol kiezen mislukt: " + error.message);
+    return;
+  }
+
+  character.role = roleId;
+  character.stats = {...stats};
+  closeRoleModal();
+  renderPartyCharacters();
+}
+
+
+function chooseDND(dndId) {
+  if (dndId !== "teen-years") return;
+  selectedDND = dndId;
+  document.getElementById("dndSelect").style.display = "none";
+  document.getElementById("partyCharacters").style.display = "";
+  renderPartyCharacters();
+}
+
+function showDNDSelection() {
+  const select = document.getElementById("dndSelect");
+  const characters = document.getElementById("partyCharacters");
+
+  if (select) select.style.display = "";
+  if (characters) characters.style.display = "none";
+}
+
+function renderPartyCharacters() {
+  const container = document.getElementById("partyCharacters");
+  if (!container) return;
+
+  if (!currentParty || currentParty.status !== "started") {
+    container.innerHTML = "";
+    const select = document.getElementById("dndSelect");
+    if (select) select.style.display = "none";
+    return;
+  }
+
+  // Eerst een DND kiezen nadat de party gestart is.
+  if (!selectedDND) {
+    showDNDSelection();
+    container.innerHTML = "";
+    return;
+  }
+
+  const members = [...currentPartyMembers].sort((a,b) => {
+    if (a.id === currentParty.dm_id) return -1;
+    if (b.id === currentParty.dm_id) return 1;
+    return (a.username || "").localeCompare(b.username || "");
+  });
+
+  container.innerHTML = `
+    <div class="party-characters">
+      ${members.map(member => {
+        const character = partyCharacters.find(c => c.user_id === member.id);
+        if (!character) {
+          return `
+            <div class="character-card">
+              <h2>⏳ Character laden...</h2>
+              <div>${escapeHtml(member.username)}</div>
+            </div>
+          `;
+        }
+
+        const editable = canEditCharacter(character);
+        const nicknameEditable = canEditNickname(character) || editable;
+        const stats = character.stats || {};
+        const casts = Array.isArray(character.casts) ? character.casts : [];
+
+        return `
+          <div class="character-card">
+            <div class="character-top">
+
+              <div class="character-photo-wrap">
+                ${
+                  character.image
+                    ? `<img class="character-photo" src="${character.image}">`
+                    : `<div class="character-placeholder">🧙</div>`
+                }
+
+                ${
+                  editable
+                    ? `
+                      <label>
+                        📷 Kies D&D-foto
+                        <input type="file" accept="image/*"
+                          onchange="uploadCharacterImage('${member.id}', this)">
+                      </label>
+                    `
+                    : ""
+                }
+              </div>
+
+              <div>
+                <div class="character-owner">
+                  Account: <b>${escapeHtml(member.username)}</b>
+                  ${member.role === "DM" ? " 👑 DM" : ""}
+                </div>
+
+                ${
+                  nicknameEditable
+                    ? `
+                      <input
+                        class="character-nickname"
+                        value="${escapeHtml(character.nickname || "")}"
+                        placeholder="Jouw D&D-naam / nickname"
+                        onchange="updateCharacter('${member.id}', 'nickname', this.value)"
+                      >
+                    `
+                    : `
+                      <div class="character-nickname">
+                        ${escapeHtml(character.nickname || "Nog geen D&D-naam")}
+                      </div>
+                    `
+                }
+
+                <div class="readonly-note">
+                  Dit is alleen de naam van je D&D-personage. Je echte accountnaam blijft apart.
+                </div>
+
+                <div class="character-actions">
+                  <button class="small" onclick="openRoleModal('${member.id}')">🎭 Rol</button>
+                  ${character.role && TEEN_YEARS_ROLES[character.role]
+                    ? `<span class="role-pill">Rol: ${TEEN_YEARS_ROLES[character.role].name}</span>`
+                    : `<span class="role-pill">Nog geen rol</span>`}
+                </div>
+
+                <div class="character-stats" style="margin-top:14px">
+                  ${DND_STAT_NAMES.map(stat => `
+                    <div class="character-stat">
+                      <label>${stat}</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="20"
+                        step="1"
+                        value="${clampStat(stats[stat])}"
+                        ${editable ? "" : "disabled"}
+                        onchange="updateCharacter('${member.id}', '${stat}', this.value)"
+                      >
+                      <div class="stat-modifier">Modifier: ${formatModifier(getAbilityModifier(stats[stat]))}</div>
+                      <div class="stat-hint">D20: d20 ${getAbilityModifier(stats[stat]) >= 0 ? '+' : '−'} ${Math.abs(getAbilityModifier(stats[stat]))}</div>
+                    </div>
+                  `).join("")}
+                </div>
+
+                <div class="dnd-stat-rules">
+                  <h3>📖 D&D stat-regels</h3>
+                  <div class="dnd-stat-rules-grid">
+                    <div class="dnd-rule"><b>Ability check:</b> d20 + relevante stat-modifier.</div>
+                    <div class="dnd-rule"><b>Saving throw:</b> d20 + relevante stat-modifier; proficiency kan erbij komen.</div>
+                    <div class="dnd-rule"><b>Initiative:</b> d20 + DEX-modifier.</div>
+                    <div class="dnd-rule"><b>Passive check:</b> 10 + alle normale modifiers.</div>
+                    <div class="dnd-rule"><b>Advantage:</b> 2d20 en neem de hoogste. <b>Disadvantage:</b> 2d20 en neem de laagste.</div>
+                    <div class="dnd-rule"><b>Proficiency:</b> een aparte bonus die je bij bepaalde checks/saves mag optellen als je daarvoor proficient bent.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <h3 class="section-title">✨ Casts / Moves</h3>
+
+            <div class="casts">
+              ${
+                casts.length
+                  ? casts.map(cast => `
+                    <div class="cast">
+                      <div class="cast-grid">
+                        <input
+                          placeholder="Naam"
+                          value="${escapeHtml(cast.name)}"
+                          ${editable ? "" : "disabled"}
+                          onchange="updateCast('${member.id}','${cast.id}','name',this.value)"
+                        >
+                        <input
+                          placeholder="Damage"
+                          value="${escapeHtml(cast.damage)}"
+                          ${editable ? "" : "disabled"}
+                          onchange="updateCast('${member.id}','${cast.id}','damage',this.value)"
+                        >
+                        <input
+                          placeholder="Requirement"
+                          value="${escapeHtml(cast.requirement)}"
+                          ${editable ? "" : "disabled"}
+                          onchange="updateCast('${member.id}','${cast.id}','requirement',this.value)"
+                        >
+                      </div>
+                      <textarea
+                        placeholder="Beschrijving..."
+                        ${editable ? "" : "disabled"}
+                        onchange="updateCast('${member.id}','${cast.id}','description',this.value)"
+                      >${escapeHtml(cast.description)}</textarea>
+                      ${
+                        editable
+                          ? `<br><button class="danger small" onclick="deleteCast('${member.id}','${cast.id}')">Verwijder cast</button>`
+                          : ""
+                      }
+                    </div>
+                  `).join("")
+                  : `<div style="color:#8e8298">Nog geen casts/moves.</div>`
+              }
+            </div>
+
+            ${
+              editable
+                ? `<br><button onclick="addCast('${member.id}')">＋ Cast / Move</button>`
+                : ""
+            }
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+
+/* =========================
+   PARTY SYSTEM
+========================= */
+
+
+let currentParty = null;
+let currentPartyMembers = [];
+
+function randomJoinCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+async function createParty() {
+  if (!currentUser || currentProfile?.role !== "DM") {
+    alert("Alleen een DM kan een party maken.");
+    return;
+  }
+
+  const input = document.getElementById("newPartyName");
+  const name = input?.value.trim();
+  if (!name) {
+    alert("Vul een naam voor de party in.");
+    return;
+  }
+
+  let party = null;
+  let error = null;
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const join_code = randomJoinCode();
+    const result = await supabaseClient.from("parties").insert({
+      name, join_code, dm_id: currentUser.id
+    }).select().single();
+
+    if (!result.error) {
+      party = result.data;
+      break;
+    }
+    error = result.error;
+    if (error.code !== "23505") break;
+  }
+
+  if (!party) {
+    console.error(error);
+    alert("Party maken mislukt: " + (error?.message || "onbekende fout"));
+    return;
+  }
+
+  const memberResult = await supabaseClient.from("party_members").insert({
+    party_id: party.id,
+    user_id: currentUser.id
+  });
+
+  if (memberResult.error && memberResult.error.code !== "23505") {
+    console.error(memberResult.error);
+  }
+
+  input.value = "";
+  await loadParty();
+}
+
+async function joinParty() {
+  const input = document.getElementById("joinPartyCode");
+  const code = input?.value.trim().toUpperCase();
+
+  if (!code) {
+    alert("Vul een join-code in.");
+    return;
+  }
+
+  const { data: party, error } = await supabaseClient
+    .from("parties").select("*").eq("join_code", code).single();
+
+  if (error || !party) {
+    alert("Geen party gevonden met deze code.");
+    return;
+  }
+
+  const { error: joinError } = await supabaseClient
+    .from("party_members").insert({ party_id: party.id, user_id: currentUser.id });
+
+  if (joinError && joinError.code !== "23505") {
+    alert("Kon niet bij de party komen: " + joinError.message);
+    return;
+  }
+
+  input.value = "";
+  await loadParty();
+}
+
+async function startParty() {
+  if (!currentParty || !currentUser) return;
+
+  if (currentParty.dm_id !== currentUser.id) {
+    alert("Alleen de DM kan de party starten.");
+    return;
+  }
+
+  if (currentParty.status === "started") return;
+
+  const { data, error } = await supabaseClient
+    .from("parties")
+    .update({ status: "started" })
+    .eq("id", currentParty.id)
+    .eq("dm_id", currentUser.id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error(error);
+    alert("Party starten mislukt: " + error.message);
+    return;
+  }
+
+  currentParty = data;
+  renderPartyPanel();
+  await ensurePartyCharacters();
+  subscribePartyCharacters();
+  renderPartyCharacters();
+}
+
+async function leaveParty() {
+  if (!currentParty) return;
+
+  if (currentParty.dm_id === currentUser.id) {
+    alert("De DM kan de eigen party nog niet verlaten.");
+    return;
+  }
+
+  const { error } = await supabaseClient.from("party_members")
+    .delete().eq("party_id", currentParty.id).eq("user_id", currentUser.id);
+
+  if (error) {
+    alert("Party verlaten mislukt: " + error.message);
+    return;
+  }
+
+  currentParty = null;
+  currentPartyMembers = [];
+  renderPartyPanel();
+}
+
+async function loadParty() {
+  if (!currentUser) return;
+
+  const { data: memberships, error } = await supabaseClient
+    .from("party_members")
+    .select("party_id")
+    .eq("user_id", currentUser.id);
+
+  if (error || !memberships?.length) {
+    currentParty = null;
+    currentPartyMembers = [];
+    partyCharacters = [];
+    renderPartyPanel();
+    renderPartyCharacters();
+    return;
+  }
+
+  const { data: party, error: partyError } = await supabaseClient
+    .from("parties").select("*").eq("id", memberships[0].party_id).single();
+
+  if (partyError || !party) {
+    currentParty = null;
+    currentPartyMembers = [];
+    partyCharacters = [];
+    renderPartyPanel();
+    renderPartyCharacters();
+    return;
+  }
+
+  currentParty = party;
+
+  const { data: members } = await supabaseClient
+    .from("party_members")
+    .select("user_id")
+    .eq("party_id", party.id);
+
+  const ids = (members || []).map(m => m.user_id);
+
+  if (!ids.length) {
+    currentPartyMembers = [];
+  } else {
+    const { data: profiles } = await supabaseClient
+      .from("profiles")
+      .select("id, username, role")
+      .in("id", ids);
+
+    currentPartyMembers = profiles || [];
+  }
+
+  renderPartyPanel();
+
+  if (currentParty.status === "started") {
+    await ensurePartyCharacters();
+    subscribePartyCharacters();
+  } else {
+    partyCharacters = [];
+    renderPartyCharacters();
+  }
+}
+
+function subscribePartyCharacters() {
+  if (!currentParty) return;
+
+  if (partyCharacterChannel) {
+    supabaseClient.removeChannel(partyCharacterChannel);
+    partyCharacterChannel = null;
+  }
+
+  partyCharacterChannel = supabaseClient
+    .channel("party-characters-" + currentParty.id)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "party_characters",
+        filter: "party_id=eq." + currentParty.id
+      },
+      payload => {
+        loadPartyCharacters();
+      }
+    )
+    .subscribe();
+}
+
+function renderPartyPanel() {
+  const panel = document.getElementById("partyPanel");
+  if (!panel || !currentUser) return;
+
+  if (!currentParty) {
+    if (currentProfile?.role === "DM") {
+      panel.innerHTML = `
+        <h2>👑 DM Party</h2>
+        <div class="party-actions">
+          <input id="newPartyName" placeholder="Naam van je nieuwe party">
+          <button onclick="createParty()">＋ Party aanmaken</button>
+        </div>
+        <div style="color:#8e8298">Maak een party aan en deel daarna de join-code.</div>
+        <hr style="border-color:#3a2a4c;margin:18px 0;">
+        <h2>🎮 Bij een party aansluiten</h2>
+        <div class="party-actions">
+          <input id="joinPartyCode" placeholder="Bijv. DRK7X2" maxlength="6">
+          <button onclick="joinParty()">Join party</button>
+        </div>
+      `;
+    } else {
+      panel.innerHTML = `
+        <h2>🎮 Bij een party aansluiten</h2>
+        <div class="party-actions">
+          <input id="joinPartyCode" placeholder="Join-code" maxlength="6">
+          <button onclick="joinParty()">Join party</button>
+        </div>
+        <div style="color:#8e8298">Vraag de join-code aan je DM.</div>
+      `;
+    }
+    return;
+  }
+
+  const memberNames = currentPartyMembers.length
+    ? currentPartyMembers.map(m =>
+        `<div>• ${escapeHtml(m.username)}${m.role === "DM" ? " 👑" : ""}</div>`
+      ).join("")
+    : "<div>Geen leden gevonden.</div>";
+
+  const isDM = currentParty.dm_id === currentUser.id;
+  const started = currentParty.status === "started";
+
+  panel.innerHTML = `
+    <h2>⚔️ ${escapeHtml(currentParty.name)}</h2>
+
+    <div style="
+      display:inline-block;
+      margin:8px 0 12px;
+      padding:7px 11px;
+      border-radius:8px;
+      background:${started ? "#244b32" : "#3d2860"};
+      color:${started ? "#b8ffc9" : "#d8bdff"};
+      font-weight:bold;
+    ">
+      ${started ? "🟢 Party gestart" : "🕐 Wacht op de DM"}
+    </div>
+
+    <div>Join-code:<span class="party-code">${escapeHtml(currentParty.join_code)}</span></div>
+
+    <div class="party-members">
+      <strong>👥 Leden</strong>
+      ${memberNames}
+    </div>
+
+    ${isDM && !started
+      ? `<button style="margin-top:15px" onclick="startParty()">▶️ Start Party</button>`
+      : ""}
+
+    ${!isDM
+      ? '<button class="danger" style="margin-top:15px" onclick="leaveParty()">Party verlaten</button>'
+      : ""}
+
+    <div style="color:#8e8298;margin-top:10px">
+      ${started
+        ? "🎲 De D&D-sessie is gestart!"
+        : isDM
+          ? "Wacht tot alle spelers klaar zijn en start daarna de party."
+          : "Wacht tot de DM de party start."}
+    </div>
+  `;
+}
+/* =========================
+   PARTY STATUS REFRESH
+========================= */
+
+setInterval(() => {
+  if (currentUser && currentParty) {
+    loadParty();
+  }
+}, 5000);
+
+setInterval(() => {
+  if (currentUser && currentParty?.status === "started") {
+    loadPartyCharacters();
+  }
+}, 5000);
+
+
+
+/* =========================
+   CHARACTER DATA
+   VOORLOPIG LOKAAL
+========================= */
+
+const STORAGE_KEY =
+  "dnd-for-us-v1";
+
+const STAT_NAMES = [
+  "STR",
+  "DEX",
+  "CON",
+  "INT",
+  "WIS",
+  "CHA"
+];
+
+
+let players =
+  JSON.parse(
+    localStorage.getItem(
+      STORAGE_KEY
+    )
+  ) || [];
+
+
+function save() {
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(players)
+  );
+
+}
+
+
+/* =========================
+   PLAYER
+========================= */
+
+function addPlayer() {
+
+  if(players.length >= 5) {
+
+    alert(
+      "Maximaal 5 spelers."
+    );
+
+    return;
+
+  }
+
+
+  players.push({
+
+    id: Date.now(),
+
+    name: "Nieuwe speler",
+
+    image: "",
+
+    stats: {
+
+      STR: 10,
+      DEX: 10,
+      CON: 10,
+      INT: 10,
+      WIS: 10,
+      CHA: 10
+
+    },
+
+    abilities: []
+
+  });
+
+
+  save();
+
+  render();
+
+}
+
+
+function deletePlayer(id) {
+
+  if(
+    !confirm(
+      "Deze speler verwijderen?"
+    )
+  ) return;
+
+
+  players =
+    players.filter(
+      p => p.id !== id
+    );
+
+
+  save();
+
+  render();
+
+}
+
+
+/* =========================
+   MOVES
+========================= */
+
+function addAbility(
+  playerId
+) {
+
+  const player =
+    players.find(
+      p => p.id === playerId
+    );
+
+
+  player.abilities.push({
+
+    id: Date.now(),
+
+    name: "Nieuwe move",
+
+    damage: "0",
+
+    requirement: "Geen",
+
+    description: ""
+
+  });
+
+
+  save();
+
+  render();
+
+}
+
+
+function deleteAbility(
+  playerId,
+  abilityId
+) {
+
+  const player =
+    players.find(
+      p => p.id === playerId
+    );
+
+
+  player.abilities =
+    player.abilities.filter(
+      a => a.id !== abilityId
+    );
+
+
+  save();
+
+  render();
+
+}
+
+
+/* =========================
+   IMAGE
+========================= */
+
+function compressImage(
+  file,
+  callback
+) {
+
+  const reader =
+    new FileReader();
+
+
+  reader.onload =
+    function(e) {
+
+      const img =
+        new Image();
+
+
+      img.onload =
+        function() {
+
+          const max =
+            500;
+
+          let width =
+            img.width;
+
+          let height =
+            img.height;
+
+
+          if(width > max) {
+
+            height =
+              Math.round(
+                height *
+                max /
+                width
+              );
+
+            width =
+              max;
+
+          }
+
+
+          const canvas =
+            document.createElement(
+              "canvas"
+            );
+
+
+          canvas.width =
+            width;
+
+          canvas.height =
+            height;
+
+
+          canvas
+            .getContext("2d")
+            .drawImage(
+              img,
+              0,
+              0,
+              width,
+              height
+            );
+
+
+          callback(
+            canvas.toDataURL(
+              "image/jpeg",
+              0.82
+            )
+          );
+
+        };
+
+
+      img.src =
+        e.target.result;
+
+    };
+
+
+  reader.readAsDataURL(file);
+
+}
+
+
+function handleImageUpload(
+  playerId,
+  input
+) {
+
+  const file =
+    input.files[0];
+
+
+  if(!file) return;
+
+
+  compressImage(
+    file,
+    image => {
+
+      const player =
+        players.find(
+          p => p.id === playerId
+        );
+
+
+      player.image =
+        image;
+
+
+      save();
+
+      render();
+
+    }
+  );
+
+}
+
+
+function removeImage(
+  playerId
+) {
+
+  const player =
+    players.find(
+      p => p.id === playerId
+    );
+
+
+  player.image = "";
+
+  save();
+
+  render();
+
+}
+
+
+/* =========================
+   HTML VEILIG
+========================= */
+
+function escapeHtml(value) {
+
+  return String(
+    value ?? ""
+  )
+
+  .replaceAll(
+    "&",
+    "&amp;"
+  )
+
+  .replaceAll(
+    "<",
+    "&lt;"
+  )
+
+  .replaceAll(
+    ">",
+    "&gt;"
+  )
+
+  .replaceAll(
+    '"',
+    "&quot;"
+  )
+
+  .replaceAll(
+    "'",
+    "&#039;"
+  );
+
+}
+
+
+/* =========================
+   RENDER
+========================= */
+
+function render() {
+
+  if (currentParty?.status === "started") {
+    const oldContainer = document.getElementById("players");
+    if (oldContainer) oldContainer.innerHTML = "";
+    renderPartyCharacters();
+    return;
+  }
+
+  const container =
+    document.getElementById(
+      "players"
+    );
+
+
+  if(players.length === 0) {
+
+    container.innerHTML = `
+
+      <div class="empty">
+
+        Nog geen spelers.
+
+        <br><br>
+
+        Klik op
+        <b>＋ Player</b>.
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    players.map(
+      player => `
+
+      <div class="player">
+
+        <div class="player-header">
+
+          <input
+
+            value="${escapeHtml(
+              player.name
+            )}"
+
+            onchange="
+              playerNameChanged(
+                ${player.id},
+                this.value
+              )
+            "
+
+          >
+
+          <button
+            class="danger small"
+            onclick="
+              deletePlayer(
+                ${player.id}
+              )
+            "
+          >
+            Verwijder
+          </button>
+
+        </div>
+
+
+        <div class="player-overview">
+
+
+          <div class="image-box">
+
+            ${
+              player.image
+
+              ?
+
+              `<img
+                class="character-image"
+                src="${player.image}"
+              >`
+
+              :
+
+              `<div
+                class="image-placeholder"
+              >
+                🧙
+              </div>`
+
+            }
+
+
+            <div class="image-controls">
+
+              <label
+                class="file-label"
+              >
+
+                📷 Kies afbeelding
+
+                <input
+                  class="file-input"
+                  type="file"
+                  accept="image/*"
+                  onchange="
+                    handleImageUpload(
+                      ${player.id},
+                      this
+                    )
+                  "
+                >
+
+              </label>
+
+              ${
+                player.image
+
+                ?
+
+                `<br><br>
+                 <button
+                   class="danger small"
+                   onclick="
+                     removeImage(
+                       ${player.id}
+                     )
+                   "
+                 >
+                   Verwijder foto
+                 </button>`
+
+                :
+
+                ""
+
+              }
+
+            </div>
+
+          </div>
+
+
+          <div class="stats">
+
+            ${STAT_NAMES.map(
+              stat => `
+
+              <div class="stat">
+
+                <label>
+                  ${stat} — ${formatModifier(getAbilityModifier(player.stats[stat]))}
+                </label>
+
+                <input
+                  type="number"
+                  min="0"
+                  max="20"
+                  step="1"
+                  value="${
+                    Number(
+                      player.stats[stat]
+                    ) || 0
+                  }"
+                  onchange="
+                    statChanged(
+                      ${player.id},
+                      '${stat}',
+                      this.value
+                    )
+                  "
+                >
+
+              </div>
+
+              `
+            ).join("")}
+
+          </div>
+
+        </div>
+
+
+        <h3 class="section-title">
+          ⚔️ Abilities / Moves
+        </h3>
+
+
+        <div class="abilities">
+
+          ${
+            player.abilities.length
+
+            ?
+
+            player.abilities.map(
+              ability => `
+
+              <div class="ability">
+
+                <div class="ability-grid">
+
+                  <input
+                    placeholder="Naam"
+                    value="${escapeHtml(
+                      ability.name
+                    )}"
+                    onchange="
+                      abilityChanged(
+                        ${player.id},
+                        ${ability.id},
+                        'name',
+                        this.value
+                      )
+                    "
+                  >
+
+                  <input
+                    placeholder="Damage"
+                    value="${escapeHtml(
+                      ability.damage
+                    )}"
+                    onchange="
+                      abilityChanged(
+                        ${player.id},
+                        ${ability.id},
+                        'damage',
+                        this.value
+                      )
+                    "
+                  >
+
+                  <input
+                    placeholder="Requirement"
+                    value="${escapeHtml(
+                      ability.requirement
+                    )}"
+                    onchange="
+                      abilityChanged(
+                        ${player.id},
+                        ${ability.id},
+                        'requirement',
+                        this.value
+                      )
+                    "
+                  >
+
+                </div>
+
+
+                <textarea
+                  placeholder="Kleine beschrijving..."
+                  onchange="
+                    abilityChanged(
+                      ${player.id},
+                      ${ability.id},
+                      'description',
+                      this.value
+                    )
+                  "
+                >${escapeHtml(
+                  ability.description
+                )}</textarea>
+
+
+                <br>
+
+                <button
+                  class="danger small"
+                  onclick="
+                    deleteAbility(
+                      ${player.id},
+                      ${ability.id}
+                    )
+                  "
+                >
+                  Verwijder move
+                </button>
+
+              </div>
+
+              `
+            ).join("")
+
+            :
+
+            `<div style="color:#8e8298">
+              Nog geen moves.
+            </div>`
+
+          }
+
+        </div>
+
+
+        <br>
+
+        <button
+          onclick="
+            addAbility(
+              ${player.id}
+            )
+          "
+        >
+          ＋ Move / Ability
+        </button>
+
+
+      </div>
+
+      `
+    ).join("");
+
+}
+
+
+/* =========================
+   EDIT FUNCTIES
+========================= */
+
+function playerNameChanged(
+  id,
+  value
+) {
+
+  const player =
+    players.find(
+      p => p.id === id
+    );
+
+  if(player) {
+
+    player.name =
+      value;
+
+    save();
+
+  }
+
+}
+
+
+function statChanged(
+  id,
+  stat,
+  value
+) {
+
+  const player =
+    players.find(
+      p => p.id === id
+    );
+
+  if(player) {
+
+    player.stats[stat] =
+      Math.max(0, Math.min(20, Math.trunc(Number(value) || 0)));
+
+    save();
+
+  }
+
+}
+
+
+function abilityChanged(
+  playerId,
+  abilityId,
+  property,
+  value
+) {
+
+  const player =
+    players.find(
+      p => p.id === playerId
+    );
+
+
+  const ability =
+    player?.abilities.find(
+      a => a.id === abilityId
+    );
+
+
+  if(ability) {
+
+    ability[property] =
+      value;
+
+    save();
+
+  }
+
+}
+
+
+/* =========================
+   START
+========================= */
+
+loadUser();
+
+</script>
+
+</body>
+</html>
+index-party-teen-years-role-button.html
+HTML
+oke dus nu voeg een kick knop toe en laat een start knop komen die de DM kan Klikken als iedereen in de lobby er ook op heeft gedrukt dus als er 8 mensen zijn? 8 mensen erop klikken dan pas start het doe dit weer alleen voor teen years en ook maak het zodat alleen de DM op de voeg toe knop kan klikken als er gestart is laat het naar een nieuwe pagina gaan met een soort story mode maar laat er voor nu maar work in progress op staan als iedereen start
+
+Ja, dit zit er nu in voor Teen Years:
+
+👥 Lobby maximaal 8 mensen
+✅ Iedereen krijgt een “Ik ben klaar”-knop
+▶️ De DM kan pas starten wanneer iedereen klaar is
+8 mensen → alle 8 moeten klaar zijn
+de DM telt ook mee
+🦶 Kick-knop voor de DM bij spelers in de lobby
+🔒 Na het starten kan niemand meer joinen
+👑 Alleen de DM ziet de Player-toevoegknop
+📖 Zodra de DM start, gaat iedereen automatisch naar een nieuwe Story Mode-pagina
+🚧 Story Mode toont voorlopig WORK IN PROGRESS
+🔄 Lobby gebruikt realtime updates + de bestaande 5-seconden controle
+Bestanden
+
+Download index.html
+
+Download story.html
+
+Download de Supabase SQL
+
+Belangrijk: SQL eerst uitvoeren
+
+Open in Supabase SQL Editor en voer party-lobby-migration.sql uit. Dit is nodig voor de ready-status, kick-permissie, 8-spelerlimiet en de veilige startcontrole.
+
+Daarna zet je op GitHub:
+
+index.html
+story.html
+
+index.html is de hoofdpagina en story.html wordt automatisch geopend zodra de DM de Teen Years start.
+
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DND For Us</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #100d18;
+  color: white;
+}
+
+/* =========================
+   LOGIN
+========================= */
+
+#authPage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.auth-box {
+  width: 100%;
+  max-width: 420px;
+  background: #1a1523;
+  border: 1px solid #3a2a4c;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 10px 40px #0008;
+}
+
+.auth-box h1 {
+  text-align: center;
+  color: #c9a7ff;
+  margin-top: 0;
+}
+
+.auth-box h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.auth-box input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid #49365d;
+  background: #0f0c15;
+  color: white;
+  font-size: 15px;
+}
+
+.auth-box button {
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #6d3bb5;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 5px;
+}
+
+.auth-box button:hover {
+  background: #824bd0;
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: 18px;
+  color: #aaa;
+}
+
+.auth-switch button {
+  width: auto;
+  background: none;
+  color: #c9a7ff;
+  padding: 0;
+}
+
+#authMessage {
+  text-align: center;
+  margin-top: 15px;
+  color: #ffb3b3;
+}
+
+/* =========================
+   APP
+========================= */
+
+#app {
+  display: none;
+}
+
+header {
+  padding: 20px;
+  text-align: center;
+  background: #1b1428;
+  border-bottom: 1px solid #3b2a52;
+}
+
+h1 {
+  margin: 0 0 12px;
+  color: #c9a7ff;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 9px 13px;
+  background: #6d3bb5;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover {
+  background: #824bd0;
+}
+
+button.danger {
+  background: #8d3030;
+}
+
+button.small {
+  padding: 6px 9px;
+  font-size: 12px;
+}
+
+.user-info {
+  margin-bottom: 15px;
+  color: #aaa;
+}
+
+.role {
+  display: inline-block;
+  background: #3d2860;
+  color: #d8bdff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-left: 5px;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 20px auto;
+  padding: 0 14px;
+}
+
+.players {
+  display: grid;
+  gap: 20px;
+}
+
+.player {
+  background: #1a1523;
+  border: 1px solid #3a2a4c;
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.player-header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.player-header input {
+  flex: 1;
+  font-size: 20px;
+  font-weight: bold;
+  background: #0f0c15;
+  color: white;
+  border: 1px solid #49365d;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.player-overview {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 20px;
+}
+
+.image-box {
+  text-align: center;
+}
+
+.character-image {
+  width: 160px;
+  height: 160px;
+  border-radius: 12px;
+  border: 2px solid #60477a;
+  background: #0f0c15;
+  object-fit: cover;
+  display: block;
+  margin: auto;
+}
+
+.image-placeholder {
+  width: 160px;
+  height: 160px;
+  border-radius: 12px;
+  border: 2px dashed #60477a;
+  background: #0f0c15;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+  font-size: 46px;
+}
+
+.image-controls {
+  margin-top: 10px;
+}
+
+.file-label {
+  display: inline-block;
+  background: #6d3bb5;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.file-input {
+  display: none;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.stat {
+  background: #110e17;
+  border: 1px solid #3d2c4e;
+  border-radius: 9px;
+  padding: 10px;
+}
+
+.stat label {
+  display: block;
+  color: #bfaed0;
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+
+.stat input {
+  width: 100%;
+  background: #211a2c;
+  color: white;
+  border: 1px solid #4a385b;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 18px;
+}
+
+.section-title {
+  color: #c9a7ff;
+}
+
+.abilities {
+  display: grid;
+  gap: 10px;
+}
+
+.ability {
+  background: #120f18;
+  border: 1px solid #3d2c4e;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.ability-grid {
+  display: grid;
+  grid-template-columns: 1.2fr .7fr .9fr;
+  gap: 8px;
+}
+
+.ability input,
+.ability textarea {
+  width: 100%;
+  background: #211a2c;
+  color: white;
+  border: 1px solid #4a385b;
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.ability textarea {
+  min-height: 65px;
+  margin-top: 8px;
+  resize: vertical;
+}
+
+.empty {
+  text-align: center;
+  color: #8e8298;
+  padding: 40px;
+}
+
+
+.party-panel{background:#1a1523;border:1px solid #3a2a4c;border-radius:14px;padding:18px;margin-bottom:20px}
+.party-panel h2{margin-top:0;color:#c9a7ff}
+.party-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px}
+.party-actions input{flex:1;min-width:180px;background:#0f0c15;color:white;border:1px solid #49365d;border-radius:8px;padding:10px}
+.party-members{margin-top:10px;color:#bfaed0}
+.party-code{display:inline-block;font-family:monospace;letter-spacing:2px;background:#2a1d3a;padding:5px 8px;border-radius:6px;margin-left:6px}
+
+@media(max-width:650px) {
+  .player-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ability-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.party-characters{
+  display:grid;
+  gap:20px;
+  margin-top:20px;
+}
+.character-card{
+  background:#1a1523;
+  border:1px solid #3a2a4c;
+  border-radius:14px;
+  padding:18px;
+}
+.character-card h2{
+  margin-top:0;
+  color:#c9a7ff;
+}
+.character-top{
+  display:grid;
+  grid-template-columns:180px 1fr;
+  gap:20px;
+}
+.character-photo-wrap{text-align:center}
+.character-photo{
+  width:170px;
+  height:170px;
+  object-fit:cover;
+  border-radius:12px;
+  border:2px solid #60477a;
+  background:#0f0c15;
+}
+.character-placeholder{
+  width:170px;
+  height:170px;
+  margin:auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:2px dashed #60477a;
+  border-radius:12px;
+  background:#0f0c15;
+  font-size:46px;
+}
+.character-photo input{display:none}
+.character-photo label{
+  display:inline-block;
+  margin-top:10px;
+  background:#6d3bb5;
+  padding:8px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+}
+.character-owner{
+  color:#9e91aa;
+  font-size:13px;
+  margin-bottom:10px;
+}
+.character-nickname{
+  width:100%;
+  background:#0f0c15;
+  color:white;
+  border:1px solid #49365d;
+  border-radius:8px;
+  padding:10px;
+  font-size:20px;
+  font-weight:bold;
+}
+.character-stats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+.character-stat{
+  background:#110e17;
+  border:1px solid #3d2c4e;
+  border-radius:9px;
+  padding:10px;
+}
+.character-stat label{
+  display:block;
+  color:#bfaed0;
+  font-size:12px;
+  margin-bottom:5px;
+}
+.character-stat input{
+  width:100%;
+  background:#211a2c;
+  color:white;
+  border:1px solid #4a385b;
+  border-radius:6px;
+  padding:8px;
+  font-size:18px;
+}
+ .character-stat .stat-modifier{
+  margin-top:6px;
+  color:#c9a7ff;
+  font-weight:bold;
+  font-size:13px;
+}
+.character-stat .stat-hint{
+  color:#8e8298;
+  font-size:11px;
+  margin-top:3px;
+}
+.dnd-stat-rules{
+  margin-top:18px;
+  background:#14101c;
+  border:1px solid #3d2c4e;
+  border-radius:12px;
+  padding:14px;
+}
+.dnd-stat-rules h3{margin:0 0 8px;color:#c9a7ff}
+.dnd-stat-rules-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.dnd-rule{background:#1b1624;border-radius:8px;padding:9px;color:#bfaed0;font-size:12px}
+.dnd-rule b{color:#fff}
+.casts{
+  display:grid;
+  gap:10px;
+}
+.cast{
+  background:#120f18;
+  border:1px solid #3d2c4e;
+  border-radius:10px;
+  padding:12px;
+}
+.cast-grid{
+  display:grid;
+  grid-template-columns:1.2fr .7fr .9fr;
+  gap:8px;
+}
+.cast input,.cast textarea{
+  width:100%;
+  background:#211a2c;
+  color:white;
+  border:1px solid #4a385b;
+  border-radius:6px;
+  padding:8px;
+}
+.cast textarea{
+  min-height:60px;
+  margin-top:8px;
+  resize:vertical;
+}
+.readonly-note{
+  color:#8e8298;
+  font-size:12px;
+  margin-top:8px;
+}
+@media(max-width:650px){
+  .character-top{grid-template-columns:1fr}
+  .character-stats{grid-template-columns:repeat(2,1fr)}
+  .cast-grid{grid-template-columns:1fr}
+}
+
+
+    /* DND SELECT */
+    .dnd-select {
+      max-width: 1100px;
+      margin: 30px auto;
+      padding: 10px 20px 40px;
+    }
+    .dnd-select-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .dnd-select-header h2 {
+      font-size: 2rem;
+      margin: 0 0 8px;
+    }
+    .dnd-select-header p {
+      color: #b9aed0;
+      margin: 0;
+    }
+    .dnd-options {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .dnd-option {
+      position: relative;
+      min-height: 250px;
+      padding: 26px;
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 20px;
+      background: linear-gradient(145deg, rgba(45,31,70,.95), rgba(24,17,39,.98));
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+    .dnd-option:hover {
+      transform: translateY(-4px);
+      border-color: rgba(170,120,255,.55);
+      box-shadow: 0 12px 35px rgba(0,0,0,.28);
+    }
+    .dnd-option.disabled {
+      cursor: default;
+      opacity: .58;
+    }
+    .dnd-option.disabled:hover {
+      transform: none;
+      border-color: rgba(255,255,255,.10);
+      box-shadow: none;
+    }
+    .dnd-option .dnd-number {
+      font-size: .82rem;
+      color: #a991c7;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .dnd-option h3 {
+      font-size: 1.55rem;
+      margin: 12px 0 8px;
+    }
+    .dnd-option p {
+      color: #c4b9d4;
+      line-height: 1.5;
+      margin: 0;
+    }
+    .dnd-option .dnd-badge {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(130,80,200,.18);
+      color: #d9c7ff;
+      font-size: .8rem;
+      font-weight: 700;
+    }
+    .dnd-option.teen-years {
+      border-color: rgba(166,116,255,.38);
+      background:
+        radial-gradient(circle at 80% 15%, rgba(124,72,190,.22), transparent 38%),
+        linear-gradient(145deg, rgba(52,31,78,.98), rgba(21,15,35,.98));
+    }
+    .teen-theme {
+      margin-top: 12px;
+      color: #e6d9ff;
+      font-size: .9rem;
+      font-weight: 700;
+    }
+    @media (max-width: 850px) {
+      .dnd-options {
+        grid-template-columns: 1fr;
+      }
+    }
+
+
+
+
+
+    .character-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .role-pill{display:inline-block;margin-top:10px;padding:6px 10px;border-radius:999px;background:#3d2860;color:#d8bdff;font-size:12px}
+    .role-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:18px;z-index:1000}
+    .role-modal{width:min(760px,100%);max-height:90vh;overflow:auto;background:#1a1523;border:1px solid #4b3564;border-radius:18px;padding:20px;box-shadow:0 20px 60px #0009}
+    .role-modal h2{margin:0 0 6px;color:#c9a7ff}
+    .role-modal p{color:#b9aed0}
+    .role-modal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+    .role-choice{padding:16px;border:1px solid #49365d;border-radius:14px;background:#211a2c;text-align:left;color:white;cursor:pointer}
+    .role-choice:hover{border-color:#9d6ee8;background:#2a2038}
+    .role-choice h3{margin:0 0 5px;color:#eee5fa}
+    .role-choice .role-desc{color:#b9aed0;font-size:13px;margin-bottom:10px}
+    .role-choice .mini-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+    .role-choice .mini-stats span{background:#110e17;border-radius:7px;padding:5px;text-align:center;font-size:11px}
+    .role-choice .mini-stats b{display:block;font-size:14px}
+    .role-modal-close{margin-top:14px;background:#3a2a4c}
+    
+    .ready-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px;padding:12px;border-radius:10px;background:#14101c;border:1px solid #3d2c4e}
+    .ready-list{display:grid;gap:7px;margin-top:10px}
+    .ready-member{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:8px;background:#211a2c}
+    .ready-ok{color:#9dffb4;font-weight:bold}
+    .ready-wait{color:#ffd28a}
+    .kick-btn{margin-left:8px}
+    .start-locked{opacity:.55;cursor:not-allowed}
+
+@media(max-width:650px){.role-modal-grid{grid-template-columns:1fr}}
+
+</style>
+</head>
+
+<body>
+
+<!-- =========================
+     LOGIN / REGISTER
+========================= -->
+
+<div id="authPage">
+
+  <div class="auth-box">
+
+    <h1>⚔️ DND For Us</h1>
+
+    <h2 id="authTitle">Inloggen</h2>
+
+    <input
+      id="username"
+      type="text"
+      placeholder="Username"
+      style="display:none"
+    >
+
+    <input
+      id="email"
+      type="email"
+      placeholder="Email"
+    >
+
+    <input
+      id="password"
+      type="password"
+      placeholder="Wachtwoord"
+    >
+
+    <button onclick="handleAuth()">
+      <span id="authButtonText">Inloggen</span>
+    </button>
+
+    <div id="authMessage"></div>
+
+    <div class="auth-switch">
+
+      <span id="switchText">
+        Nog geen account?
+      </span>
+
+      <button onclick="toggleAuthMode()">
+        <span id="switchButton">
+          Account maken
+        </span>
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================
+     APP
+========================= -->
+
+<div id="app">
+
+<header>
+
+  <h1>⚔️ DND For Us</h1>
+
+  <div class="user-info">
+
+    Ingelogd als
+    <b id="currentUsername"></b>
+
+    <span
+      class="role"
+      id="currentRole"
+    ></span>
+
+  </div>
+
+  <button id="addPlayerButton" onclick="addPlayer()" style="display:none">
+    ＋ Player
+  </button>
+
+  <button
+    onclick="logout()"
+    class="danger"
+  >
+    Uitloggen
+  </button>
+
+</header>
+
+
+<div class="container">
+
+  <div id="partyPanel" class="party-panel"></div>
+
+  
+<div id="dndSelect" class="dnd-select" style="display:none;">
+  <div class="dnd-select-header">
+    <h2>Choose DND</h2>
+    <p>Kies welk avontuur je met deze party wilt spelen.</p>
+  </div>
+
+  <div class="dnd-options">
+    <button class="dnd-option teen-years" onclick="chooseDND('teen-years')">
+      <div class="dnd-number">DND 01</div>
+      <h3>Teen Years</h3>
+      <div class="teen-theme">2006 • JJK thema</div>
+      <p>De eerste speelbare DND. Een donkere urban-fantasy setting met de sfeer van 2006.</p>
+      <span class="dnd-badge">Beschikbaar</span>
+    </button>
+
+    <button class="dnd-option disabled" disabled>
+      <div class="dnd-number">DND 02</div>
+      <h3>Youngins</h3>
+      <p>Een tweede avontuur dat later wordt toegevoegd.</p>
+      <span class="dnd-badge">Coming soon</span>
+    </button>
+
+    <button class="dnd-option disabled" disabled>
+      <div class="dnd-number">DND 03</div>
+      <h3>Revived</h3>
+      <p>Een derde avontuur dat later wordt toegevoegd.</p>
+      <span class="dnd-badge">Coming soon</span>
+    </button>
+  </div>
+</div>
+
+
+
+<div id="roleModalBackdrop" class="role-modal-backdrop" onclick="closeRoleModal(event)">
+  <div class="role-modal" onclick="event.stopPropagation()">
+    <h2>🎭 Kies een rol</h2>
+    <p id="roleModalTarget"></p>
+    <div class="role-modal-grid" id="roleModalOptions"></div>
+    <button class="role-modal-close" onclick="closeRoleModal()">Sluiten</button>
+  </div>
+</div>
+
+<div id="partyCharacters"></div>
+
+
+  <div
+    id="players"
+    class="players"
+  ></div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =========================
+   SUPABASE
+========================= */
+
+const SUPABASE_URL =
+  "https://smrmzoljzglgqzdjvqjl.supabase.co";
+
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtcm16b2xqemdsZ3F6ZGp2cWpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA4NjgwNTgsImV4cCI6MjEwNjQ0NDA1OH0.JBBu1_-X5X31cDx0URk2o1xIHJF55REsMhiiqJR-XTk";
+
+
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+/* =========================
+   AUTH
+========================= */
+
+let registerMode = false;
+
+let currentUser = null;
+
+let currentProfile = null;
+
+
+/* =========================
+   AUTH MODE
+========================= */
+
+function toggleAuthMode() {
+
+  registerMode =
+    !registerMode;
+
+
+  const title =
+    document.getElementById(
+      "authTitle"
+    );
+
+  const username =
+    document.getElementById(
+      "username"
+    );
+
+  const button =
+    document.getElementById(
+      "authButtonText"
+    );
+
+  const switchText =
+    document.getElementById(
+      "switchText"
+    );
+
+  const switchButton =
+    document.getElementById(
+      "switchButton"
+    );
+
+
+  if(registerMode) {
+
+    title.textContent =
+      "Account maken";
+
+    username.style.display =
+      "block";
+
+    button.textContent =
+      "Account maken";
+
+    switchText.textContent =
+      "Heb je al een account?";
+
+    switchButton.textContent =
+      "Inloggen";
+
+  } else {
+
+    title.textContent =
+      "Inloggen";
+
+    username.style.display =
+      "none";
+
+    button.textContent =
+      "Inloggen";
+
+    switchText.textContent =
+      "Nog geen account?";
+
+    switchButton.textContent =
+      "Account maken";
+
+  }
+
+}
+
+
+/* =========================
+   REGISTER / LOGIN
+========================= */
+
+async function handleAuth() {
+
+  const email =
+    document
+      .getElementById("email")
+      .value
+      .trim();
+
+  const password =
+    document
+      .getElementById("password")
+      .value;
+
+  const username =
+    document
+      .getElementById("username")
+      .value
+      .trim();
+
+
+  const message =
+    document.getElementById(
+      "authMessage"
+    );
+
+
+  message.textContent =
+    "Even bezig...";
+
+
+  if(!email || !password) {
+
+    message.textContent =
+      "Vul email en wachtwoord in.";
+
+    return;
+
+  }
+
+
+  if(registerMode) {
+
+    if(!username) {
+
+      message.textContent =
+        "Vul een username in.";
+
+      return;
+
+    }
+
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient.auth.signUp({
+
+        email: email,
+
+        password: password,
+
+        options: {
+
+          data: {
+
+            username:
+              username
+
+          }
+
+        }
+
+      });
+
+
+    if(error) {
+
+      message.textContent =
+        error.message;
+
+      return;
+
+    }
+
+
+    message.style.color =
+      "#9dffb0";
+
+    message.textContent =
+      "Account aangemaakt! Controleer eventueel je email.";
+
+  } else {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient.auth.signInWithPassword({
+
+        email: email,
+
+        password: password
+
+      });
+
+
+    if(error) {
+
+      message.style.color =
+        "#ffb3b3";
+
+      message.textContent =
+        error.message;
+
+      return;
+
+    }
+
+
+    await loadUser();
+
+  }
+
+}
+
+
+/* =========================
+   USER LADEN
+========================= */
+
+async function loadUser() {
+
+  const {
+    data: {
+      user
+    }
+  } =
+    await supabaseClient.auth.getUser();
+
+
+  if(!user) {
+
+    showAuth();
+
+    return;
+
+  }
+
+
+  currentUser =
+    user;
+
+
+  const {
+    data: profile,
+    error
+  } =
+    await supabaseClient
+
+      .from("profiles")
+
+      .select("*")
+
+      .eq("id", user.id)
+
+      .single();
+
+
+  if(error) {
+
+    console.error(error);
+
+    return;
+
+  }
+
+
+  currentProfile =
+    profile;
+
+
+  document
+    .getElementById(
+      "currentUsername"
+    )
+    .textContent =
+      profile.username;
+
+
+  document
+    .getElementById(
+      "currentRole"
+    )
+    .textContent =
+      profile.role;
+
+
+  showApp();
+
+}
+
+
+/* =========================
+   PAGINA TONEN
+========================= */
+
+function showApp() {
+
+  document
+    .getElementById(
+      "authPage"
+    )
+    .style.display =
+      "none";
+
+
+  document
+    .getElementById(
+      "app"
+    )
+    .style.display =
+      "block";
+
+
+  render();
+  loadParty();
+
+}
+
+
+function showAuth() {
+
+  document
+    .getElementById(
+      "authPage"
+    )
+    .style.display =
+      "flex";
+
+
+  document
+    .getElementById(
+      "app"
+    )
+    .style.display =
+      "none";
+
+}
+
+
+/* =========================
+   LOGOUT
+========================= */
+
+async function logout() {
+
+  await supabaseClient.auth.signOut();
+
+  currentUser = null;
+
+  currentProfile = null;
+
+  showAuth();
+
+}
+
+
+/* =========================
+   AUTH STATE
+========================= */
+
+supabaseClient.auth.onAuthStateChange(
+  async (event, session) => {
+
+    if(session) {
+
+      await loadUser();
+
+    } else {
+
+      showAuth();
+
+    }
+
+  }
+);
+
+
+
+/* =========================
+   PARTY D&D CHARACTERS
+========================= */
+
+let partyCharacters = [];
+let partyCharacterChannel = null;
+
+const DND_STAT_NAMES = ["STR","DEX","CON","INT","WIS","CHA"];
+
+// Officiële D&D ability-score modifier: floor((score - 10) / 2).
+function getAbilityModifier(score) {
+  const n = Math.trunc(Number(score) || 0);
+  return Math.floor((n - 10) / 2);
+}
+
+function formatModifier(modifier) {
+  return modifier >= 0 ? `+${modifier}` : `${modifier}`;
+}
+
+function clampStat(value) {
+  return Math.max(0, Math.min(20, Math.trunc(Number(value) || 0)));
+}
+
+function defaultCharacter(userId) {
+  return {
+    party_id: currentParty.id,
+    user_id: userId,
+    nickname: "Nieuwe held",
+    image: "",
+    stats: {
+      STR: 10, DEX: 10, CON: 10,
+      INT: 10, WIS: 10, CHA: 10
+    },
+    casts: []
+  };
+}
+
+function isDM() {
+  return currentUser && currentParty?.dm_id === currentUser.id;
+}
+
+function canEditNickname(character) {
+  return currentUser && currentUser.id === character.user_id;
+}
+
+function canEditCharacter(character) {
+  return isDM();
+}
+
+async function ensurePartyCharacters() {
+  if (!currentParty || currentParty.status !== "started") return;
+
+  const memberIds = currentPartyMembers.map(m => m.id);
+
+  for (const userId of memberIds) {
+    const existing = partyCharacters.find(c => c.user_id === userId);
+    if (existing) continue;
+
+    const character = defaultCharacter(userId);
+    const { error } = await supabaseClient
+      .from("party_characters")
+      .insert(character);
+
+    if (error && error.code !== "23505") {
+      console.error("Character aanmaken mislukt:", error);
+    }
+  }
+
+  await loadPartyCharacters();
+}
+
+async function loadPartyCharacters() {
+  if (!currentParty || currentParty.status !== "started") {
+    partyCharacters = [];
+    renderPartyCharacters();
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("party_characters")
+    .select("*")
+    .eq("party_id", currentParty.id);
+
+  if (error) {
+    console.error("Characters laden mislukt:", error);
+    return;
+  }
+
+  partyCharacters = data || [];
+  renderPartyCharacters();
+}
+
+async function updateCharacter(userId, field, value) {
+  const character = partyCharacters.find(c => c.user_id === userId);
+  if (!character) return;
+
+  // Spelers mogen uitsluitend hun eigen nickname wijzigen.
+  if (field === "nickname") {
+    if (!canEditNickname(character) && !isDM()) return;
+  } else if (!canEditCharacter(character)) {
+    return;
+  }
+
+  let patch = {};
+
+  if (field === "nickname") {
+    patch.nickname = value;
+  } else if (field === "image") {
+    patch.image = value;
+  } else if (DND_STAT_NAMES.includes(field)) {
+    const statValue = clampStat(value);
+    patch.stats = {
+      ...(character.stats || {}),
+      [field]: statValue
+    };
+  }
+
+  if (!Object.keys(patch).length) return;
+
+  const { error } = await supabaseClient
+    .from("party_characters")
+    .update(patch)
+    .eq("party_id", currentParty.id)
+    .eq("user_id", userId);
+
+  if (error) {
+    alert("Opslaan mislukt: " + error.message);
+    return;
+  }
+
+  Object.assign(character, patch);
+  renderPartyCharacters();
+}
+
+async function addCast(userId) {
+  const character = partyCharacters.find(c => c.user_id === userId);
+  if (!character || !canEditCharacter(character)) return;
+
+  const casts = Array.isArray(character.casts) ? [...character.casts] : [];
+  casts.push({
+    id: crypto.randomUUID(),
+    name: "Nieuwe cast",
+    damage: "0",
+    requirement: "Geen",
+    description: ""
+  });
+
+  const { error } = await supabaseClient
+    .from("party_characters")
+    .update({ casts })
+    .eq("party_id", currentParty.id)
+    .eq("user_id", userId);
+
+  if (error) {
+    alert("Cast toevoegen mislukt: " + error.message);
+    return;
+  }
+
+  character.casts = casts;
+  renderPartyCharacters();
+}
+
+async function updateCast(userId, castId, field, value) {
+  const character = partyCharacters.find(c => c.user_id === userId);
+  if (!character || !canEditCharacter(character)) return;
+
+  const casts = (character.casts || []).map(c =>
+    c.id === castId ? {...c, [field]: value} : c
+  );
+
+  const { error } = await supabaseClient
+    .from("party_characters")
+    .update({ casts })
+    .eq("party_id", currentParty.id)
+    .eq("user_id", userId);
+
+  if (error) {
+    alert("Cast opslaan mislukt: " + error.message);
+    return;
+  }
+
+  character.casts = casts;
+}
+
+async function deleteCast(userId, castId) {
+  const character = partyCharacters.find(c => c.user_id === userId);
+  if (!character || !canEditCharacter(character)) return;
+
+  const casts = (character.casts || []).filter(c => c.id !== castId);
+
+  const { error } = await supabaseClient
+    .from("party_characters")
+    .update({ casts })
+    .eq("party_id", currentParty.id)
+    .eq("user_id", userId);
+
+  if (error) {
+    alert("Cast verwijderen mislukt: " + error.message);
+    return;
+  }
+
+  character.casts = casts;
+  renderPartyCharacters();
+}
+
+function uploadCharacterImage(userId, input) {
+  const file = input.files?.[0];
+  if (!file) return;
+
+  compressImage(file, async image => {
+    await updateCharacter(userId, "image", image);
+  });
+}
+
+
+// ===============================
+// DND SELECTION
+// ===============================
+
+let selectedDND = null;
+
+
+const TEEN_YEARS_ROLES = {
+  strongest:{
+    name:"The Strongest",
+    character:"Overconfident powerhouse",
+    description:"STR 20, maar INT is 6.",
+    stats:{STR:20,DEX:10,CON:10,INT:6,WIS:10,CHA:15}
+  },
+  "curse-eater":{
+    name:"Curse Eater",
+    character:"Geto",
+    description:"All-rounder met extra DEX en CHA 20.",
+    stats:{STR:10,DEX:16,CON:10,INT:10,WIS:10,CHA:20}
+  },
+  nurse:{
+    name:"Nurse",
+    character:"Shoko",
+    description:"CON, WIS en INT zijn 18.",
+    stats:{STR:4,DEX:4,CON:18,INT:18,WIS:18,CHA:4}
+  },
+  bag:{
+    name:"Bag",
+    character:"Cursed User • Hidden Inventory",
+    description:"Alle stats 6, behalve DEX 20.",
+    stats:{STR:6,DEX:20,CON:6,INT:6,WIS:6,CHA:6}
+  }
+};
+
+let roleTargetUserId = null;
+
+function openRoleModal(userId){
+  const character = partyCharacters.find(c => c.user_id === userId);
+  const member = currentPartyMembers.find(m => m.id === userId);
+  if(!character || !member) return;
+
+  if(!isDM() && currentUser.id !== userId){
+    alert("Je kunt alleen de rol van jezelf kiezen. De DM kan de rol van iedereen kiezen.");
+    return;
+  }
+
+  roleTargetUserId = userId;
+  document.getElementById("roleModalTarget").textContent =
+    "Voor: " + (character.nickname || "Nieuwe held") + " (" + member.username + ")";
+
+  document.getElementById("roleModalOptions").innerHTML =
+    Object.entries(TEEN_YEARS_ROLES).map(([id, role]) => `
+      <button class="role-choice" onclick="applyTeenRole('${id}')">
+        <h3>${role.name}</h3>
+        <div class="role-desc">${role.character} — ${role.description}</div>
+        <div class="mini-stats">
+          ${DND_STAT_NAMES.map(stat => `<span>${stat}<b>${role.stats[stat]}</b></span>`).join("")}
+        </div>
+      </button>
+    `).join("");
+
+  document.getElementById("roleModalBackdrop").style.display = "flex";
+}
+
+function closeRoleModal(event){
+  if(event && event.target !== document.getElementById("roleModalBackdrop")) return;
+  roleTargetUserId = null;
+  document.getElementById("roleModalBackdrop").style.display = "none";
+}
+
+async function applyTeenRole(roleId){
+  if(!roleTargetUserId || !TEEN_YEARS_ROLES[roleId]) return;
+
+  const character = partyCharacters.find(c => c.user_id === roleTargetUserId);
+  if(!character) return;
+
+  if(!isDM() && currentUser.id !== roleTargetUserId){
+    alert("Je kunt alleen je eigen rol kiezen.");
+    return;
+  }
+
+  const stats = TEEN_YEARS_ROLES[roleId].stats;
+
+  const {error} = await supabaseClient
+    .from("party_characters")
+    .update({role: roleId, stats})
+    .eq("party_id", currentParty.id)
+    .eq("user_id", roleTargetUserId);
+
+  if(error){
+    alert("Rol kiezen mislukt: " + error.message);
+    return;
+  }
+
+  character.role = roleId;
+  character.stats = {...stats};
+  closeRoleModal();
+  renderPartyCharacters();
+}
+
+
+function chooseDND(dndId) {
+  if (dndId !== "teen-years") return;
+  selectedDND = dndId;
+  document.getElementById("dndSelect").style.display = "none";
+  document.getElementById("partyCharacters").style.display = "";
+  renderPartyCharacters();
+}
+
+function showDNDSelection() {
+  const select = document.getElementById("dndSelect");
+  const characters = document.getElementById("partyCharacters");
+
+  if (select) select.style.display = "";
+  if (characters) characters.style.display = "none";
+}
+
+function renderPartyCharacters() {
+  const container = document.getElementById("partyCharacters");
+  if (!container) return;
+
+  if (!currentParty || currentParty.status !== "started") {
+    container.innerHTML = "";
+    const select = document.getElementById("dndSelect");
+    if (select) select.style.display = "none";
+    return;
+  }
+
+  // Eerst een DND kiezen nadat de party gestart is.
+  if (!selectedDND) {
+    showDNDSelection();
+    container.innerHTML = "";
+    return;
+  }
+
+  const members = [...currentPartyMembers].sort((a,b) => {
+    if (a.id === currentParty.dm_id) return -1;
+    if (b.id === currentParty.dm_id) return 1;
+    return (a.username || "").localeCompare(b.username || "");
+  });
+
+  container.innerHTML = `
+    <div class="party-characters">
+      ${members.map(member => {
+        const character = partyCharacters.find(c => c.user_id === member.id);
+        if (!character) {
+          return `
+            <div class="character-card">
+              <h2>⏳ Character laden...</h2>
+              <div>${escapeHtml(member.username)}</div>
+            </div>
+          `;
+        }
+
+        const editable = canEditCharacter(character);
+        const nicknameEditable = canEditNickname(character) || editable;
+        const stats = character.stats || {};
+        const casts = Array.isArray(character.casts) ? character.casts : [];
+
+        return `
+          <div class="character-card">
+            <div class="character-top">
+
+              <div class="character-photo-wrap">
+                ${
+                  character.image
+                    ? `<img class="character-photo" src="${character.image}">`
+                    : `<div class="character-placeholder">🧙</div>`
+                }
+
+                ${
+                  editable
+                    ? `
+                      <label>
+                        📷 Kies D&D-foto
+                        <input type="file" accept="image/*"
+                          onchange="uploadCharacterImage('${member.id}', this)">
+                      </label>
+                    `
+                    : ""
+                }
+              </div>
+
+              <div>
+                <div class="character-owner">
+                  Account: <b>${escapeHtml(member.username)}</b>
+                  ${member.role === "DM" ? " 👑 DM" : ""}
+                </div>
+
+                ${
+                  nicknameEditable
+                    ? `
+                      <input
+                        class="character-nickname"
+                        value="${escapeHtml(character.nickname || "")}"
+                        placeholder="Jouw D&D-naam / nickname"
+                        onchange="updateCharacter('${member.id}', 'nickname', this.value)"
+                      >
+                    `
+                    : `
+                      <div class="character-nickname">
+                        ${escapeHtml(character.nickname || "Nog geen D&D-naam")}
+                      </div>
+                    `
+                }
+
+                <div class="readonly-note">
+                  Dit is alleen de naam van je D&D-personage. Je echte accountnaam blijft apart.
+                </div>
+
+                <div class="character-actions">
+                  <button class="small" onclick="openRoleModal('${member.id}')">🎭 Rol</button>
+                  ${character.role && TEEN_YEARS_ROLES[character.role]
+                    ? `<span class="role-pill">Rol: ${TEEN_YEARS_ROLES[character.role].name}</span>`
+                    : `<span class="role-pill">Nog geen rol</span>`}
+                </div>
+
+                <div class="character-stats" style="margin-top:14px">
+                  ${DND_STAT_NAMES.map(stat => `
+                    <div class="character-stat">
+                      <label>${stat}</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="20"
+                        step="1"
+                        value="${clampStat(stats[stat])}"
+                        ${editable ? "" : "disabled"}
+                        onchange="updateCharacter('${member.id}', '${stat}', this.value)"
+                      >
+                      <div class="stat-modifier">Modifier: ${formatModifier(getAbilityModifier(stats[stat]))}</div>
+                      <div class="stat-hint">D20: d20 ${getAbilityModifier(stats[stat]) >= 0 ? '+' : '−'} ${Math.abs(getAbilityModifier(stats[stat]))}</div>
+                    </div>
+                  `).join("")}
+                </div>
+
+                <div class="dnd-stat-rules">
+                  <h3>📖 D&D stat-regels</h3>
+                  <div class="dnd-stat-rules-grid">
+                    <div class="dnd-rule"><b>Ability check:</b> d20 + relevante stat-modifier.</div>
+                    <div class="dnd-rule"><b>Saving throw:</b> d20 + relevante stat-modifier; proficiency kan erbij komen.</div>
+                    <div class="dnd-rule"><b>Initiative:</b> d20 + DEX-modifier.</div>
+                    <div class="dnd-rule"><b>Passive check:</b> 10 + alle normale modifiers.</div>
+                    <div class="dnd-rule"><b>Advantage:</b> 2d20 en neem de hoogste. <b>Disadvantage:</b> 2d20 en neem de laagste.</div>
+                    <div class="dnd-rule"><b>Proficiency:</b> een aparte bonus die je bij bepaalde checks/saves mag optellen als je daarvoor proficient bent.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <h3 class="section-title">✨ Casts / Moves</h3>
+
+            <div class="casts">
+              ${
+                casts.length
+                  ? casts.map(cast => `
+                    <div class="cast">
+                      <div class="cast-grid">
+                        <input
+                          placeholder="Naam"
+                          value="${escapeHtml(cast.name)}"
+                          ${editable ? "" : "disabled"}
+                          onchange="updateCast('${member.id}','${cast.id}','name',this.value)"
+                        >
+                        <input
+                          placeholder="Damage"
+                          value="${escapeHtml(cast.damage)}"
+                          ${editable ? "" : "disabled"}
+                          onchange="updateCast('${member.id}','${cast.id}','damage',this.value)"
+                        >
+                        <input
+                          placeholder="Requirement"
+                          value="${escapeHtml(cast.requirement)}"
+                          ${editable ? "" : "disabled"}
+                          onchange="updateCast('${member.id}','${cast.id}','requirement',this.value)"
+                        >
+                      </div>
+                      <textarea
+                        placeholder="Beschrijving..."
+                        ${editable ? "" : "disabled"}
+                        onchange="updateCast('${member.id}','${cast.id}','description',this.value)"
+                      >${escapeHtml(cast.description)}</textarea>
+                      ${
+                        editable
+                          ? `<br><button class="danger small" onclick="deleteCast('${member.id}','${cast.id}')">Verwijder cast</button>`
+                          : ""
+                      }
+                    </div>
+                  `).join("")
+                  : `<div style="color:#8e8298">Nog geen casts/moves.</div>`
+              }
+            </div>
+
+            ${
+              editable
+                ? `<br><button onclick="addCast('${member.id}')">＋ Cast / Move</button>`
+                : ""
+            }
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+
+/* =========================
+   PARTY SYSTEM
+========================= */
+
+
+let currentParty = null;
+let currentPartyMembers = [];
+let partyStatusChannel = null;
+let redirectingToStory = false;
+
+function randomJoinCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+async function createParty() {
+  if (!currentUser || currentProfile?.role !== "DM") {
+    alert("Alleen een DM kan een party maken.");
+    return;
+  }
+
+  const input = document.getElementById("newPartyName");
+  const name = input?.value.trim();
+  if (!name) {
+    alert("Vul een naam voor de party in.");
+    return;
+  }
+
+  let party = null;
+  let error = null;
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const join_code = randomJoinCode();
+    const result = await supabaseClient.from("parties").insert({
+      name, join_code, dm_id: currentUser.id
+    }).select().single();
+
+    if (!result.error) {
+      party = result.data;
+      break;
+    }
+    error = result.error;
+    if (error.code !== "23505") break;
+  }
+
+  if (!party) {
+    console.error(error);
+    alert("Party maken mislukt: " + (error?.message || "onbekende fout"));
+    return;
+  }
+
+  const memberResult = await supabaseClient.from("party_members").insert({
+    party_id: party.id,
+    user_id: currentUser.id
+  });
+
+  if (memberResult.error && memberResult.error.code !== "23505") {
+    console.error(memberResult.error);
+  }
+
+  input.value = "";
+  await loadParty();
+}
+
+async function joinParty() {
+  const input = document.getElementById("joinPartyCode");
+  const code = input?.value.trim().toUpperCase();
+
+  if (!code) {
+    alert("Vul een join-code in.");
+    return;
+  }
+
+  const { data: party, error } = await supabaseClient
+    .from("parties").select("*").eq("join_code", code).single();
+
+  if (error || !party) {
+    alert("Geen party gevonden met deze code.");
+    return;
+  }
+
+  if (party.status === "started") {
+    alert("Deze party is al gestart. Je kunt niet meer joinen.");
+    return;
+  }
+
+  const { count } = await supabaseClient
+    .from("party_members")
+    .select("user_id", { count: "exact", head: true })
+    .eq("party_id", party.id);
+
+  if ((count || 0) >= 8) {
+    alert("Deze lobby zit vol. Een party kan maximaal 8 mensen hebben.");
+    return;
+  }
+
+  const { error: joinError } = await supabaseClient
+    .from("party_members").insert({ party_id: party.id, user_id: currentUser.id, ready: false });
+
+  if (joinError && joinError.code !== "23505") {
+    alert("Kon niet bij de party komen: " + joinError.message);
+    return;
+  }
+
+  input.value = "";
+  await loadParty();
+}
+
+async function setReady() {
+  if (!currentParty || !currentUser || currentParty.status === "started") return;
+
+  const member = currentPartyMembers.find(m => m.id === currentUser.id);
+  const nextReady = !(member?.ready);
+
+  const { error } = await supabaseClient
+    .from("party_members")
+    .update({ ready: nextReady })
+    .eq("party_id", currentParty.id)
+    .eq("user_id", currentUser.id);
+
+  if (error) {
+    alert("Klaar-status wijzigen mislukt: " + error.message);
+    return;
+  }
+
+  await loadParty();
+}
+
+async function startParty() {
+  if (!currentParty || !currentUser) return;
+
+  if (currentParty.dm_id !== currentUser.id) {
+    alert("Alleen de DM kan de party starten.");
+    return;
+  }
+
+  if (currentParty.status === "started") return;
+
+  const { data, error } = await supabaseClient.rpc("start_party_if_ready", {
+    target_party_id: currentParty.id
+  });
+
+  if (error) {
+    console.error(error);
+    alert(error.message || "De party kan nog niet starten. Iedereen moet eerst op Klaar drukken.");
+    return;
+  }
+
+  if (!data?.success) {
+    alert(data?.message || "De party kan nog niet starten. Niet iedereen is klaar.");
+    await loadParty();
+    return;
+  }
+
+  await loadParty();
+}
+
+async function kickMember(userId) {
+  if (!currentParty || !isDM() || currentParty.status === "started") return;
+  if (userId === currentUser.id) return;
+
+  const member = currentPartyMembers.find(m => m.id === userId);
+  if (!member) return;
+  if (!confirm(`Weet je zeker dat je ${member.username} uit de lobby wilt kicken?`)) return;
+
+  const { error } = await supabaseClient
+    .from("party_members")
+    .delete()
+    .eq("party_id", currentParty.id)
+    .eq("user_id", userId);
+
+  if (error) {
+    alert("Kicken mislukt: " + error.message);
+    return;
+  }
+
+  await loadParty();
+}
+
+async function leaveParty() {
+  if (!currentParty) return;
+
+  if (currentParty.dm_id === currentUser.id) {
+    alert("De DM kan de eigen party nog niet verlaten.");
+    return;
+  }
+
+  const { error } = await supabaseClient.from("party_members")
+    .delete().eq("party_id", currentParty.id).eq("user_id", currentUser.id);
+
+  if (error) {
+    alert("Party verlaten mislukt: " + error.message);
+    return;
+  }
+
+  currentParty = null;
+  currentPartyMembers = [];
+  renderPartyPanel();
+}
+
+async function loadParty() {
+  if (!currentUser) return;
+
+  const { data: memberships, error } = await supabaseClient
+    .from("party_members")
+    .select("party_id")
+    .eq("user_id", currentUser.id);
+
+  if (error || !memberships?.length) {
+    currentParty = null;
+    currentPartyMembers = [];
+    partyCharacters = [];
+    if (partyStatusChannel) { supabaseClient.removeChannel(partyStatusChannel); partyStatusChannel = null; }
+    renderPartyPanel();
+    renderPartyCharacters();
+    return;
+  }
+
+  const { data: party, error: partyError } = await supabaseClient
+    .from("parties").select("*").eq("id", memberships[0].party_id).single();
+
+  if (partyError || !party) {
+    currentParty = null;
+    currentPartyMembers = [];
+    partyCharacters = [];
+    renderPartyPanel();
+    renderPartyCharacters();
+    return;
+  }
+
+  currentParty = party;
+
+  if (currentParty.status === "started" && !redirectingToStory) {
+    redirectingToStory = true;
+    window.location.href = "story.html?party=" + encodeURIComponent(currentParty.id);
+    return;
+  }
+
+  const { data: members } = await supabaseClient
+    .from("party_members")
+    .select("user_id, ready")
+    .eq("party_id", party.id);
+
+  const ids = (members || []).map(m => m.user_id);
+
+  if (!ids.length) {
+    currentPartyMembers = [];
+  } else {
+    const { data: profiles } = await supabaseClient
+      .from("profiles")
+      .select("id, username, role")
+      .in("id", ids);
+
+    currentPartyMembers = (profiles || []).map(p => {
+      const membership = (members || []).find(m => m.user_id === p.id);
+      return { ...p, ready: !!membership?.ready };
+    });
+  }
+
+  renderPartyPanel();
+  subscribePartyLobby();
+
+  if (currentParty.status === "started") {
+    await ensurePartyCharacters();
+    subscribePartyCharacters();
+  } else {
+    partyCharacters = [];
+    renderPartyCharacters();
+  }
+}
+
+function subscribePartyCharacters() {
+  if (!currentParty) return;
+
+  if (partyCharacterChannel) {
+    supabaseClient.removeChannel(partyCharacterChannel);
+    partyCharacterChannel = null;
+  }
+
+  partyCharacterChannel = supabaseClient
+    .channel("party-characters-" + currentParty.id)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "party_characters",
+        filter: "party_id=eq." + currentParty.id
+      },
+      payload => {
+        loadPartyCharacters();
+      }
+    )
+    .subscribe();
+}
+
+function subscribePartyLobby() {
+  if (!currentParty) return;
+  if (partyStatusChannel) {
+    supabaseClient.removeChannel(partyStatusChannel);
+    partyStatusChannel = null;
+  }
+  partyStatusChannel = supabaseClient
+    .channel("party-lobby-" + currentParty.id)
+    .on("postgres_changes", { event: "*", schema: "public", table: "party_members", filter: "party_id=eq." + currentParty.id }, () => {
+      loadParty();
+    })
+    .on("postgres_changes", { event: "UPDATE", schema: "public", table: "parties", filter: "id=eq." + currentParty.id }, () => {
+      loadParty();
+    })
+    .subscribe();
+}
+
+function renderPartyPanel() {
+  const panel = document.getElementById("partyPanel");
+  if (!panel || !currentUser) return;
+
+  const addButton = document.getElementById("addPlayerButton");
+  if (addButton) {
+    addButton.style.display = currentProfile?.role === "DM" ? "inline-block" : "none";
+    addButton.disabled = false;
+  }
+
+  if (!currentParty) {
+    panel.innerHTML = currentProfile?.role === "DM"
+      ? `
+        <h2>👑 DM Party</h2>
+        <div class="party-actions">
+          <input id="newPartyName" placeholder="Naam van je nieuwe party">
+          <button onclick="createParty()">＋ Party aanmaken</button>
+        </div>
+        <div style="color:#8e8298">Maak een party aan en deel de join-code. Maximaal 8 mensen.</div>
+        <hr style="border-color:#3a2a4c;margin:18px 0;">
+        <h2>🎮 Bij een party aansluiten</h2>
+        <div class="party-actions">
+          <input id="joinPartyCode" placeholder="Bijv. DRK7X2" maxlength="6">
+          <button onclick="joinParty()">Join party</button>
+        </div>
+      `
+      : `
+        <h2>🎮 Bij een party aansluiten</h2>
+        <div class="party-actions">
+          <input id="joinPartyCode" placeholder="Join-code" maxlength="6">
+          <button onclick="joinParty()">Join party</button>
+        </div>
+        <div style="color:#8e8298">Vraag de join-code aan je DM.</div>
+      `;
+    return;
+  }
+
+  const isDMUser = currentParty.dm_id === currentUser.id;
+  const started = currentParty.status === "started";
+  const readyCount = currentPartyMembers.filter(m => m.ready).length;
+  const allReady = currentPartyMembers.length > 0 && readyCount === currentPartyMembers.length;
+  const myMember = currentPartyMembers.find(m => m.id === currentUser.id);
+
+  const memberRows = currentPartyMembers.length
+    ? currentPartyMembers.map(m => `
+        <div class="ready-member">
+          <span>${m.role === "DM" ? "👑 " : ""}${escapeHtml(m.username)}</span>
+          <span>
+            <span class="${m.ready ? "ready-ok" : "ready-wait"}">${m.ready ? "✓ Klaar" : "○ Wacht"}</span>
+            ${isDMUser && !started && m.id !== currentUser.id
+              ? `<button class="danger small kick-btn" onclick="kickMember('${m.id}')">🦶 Kick</button>`
+              : ""}
+          </span>
+        </div>
+      `).join("")
+    : "<div>Geen leden gevonden.</div>";
+
+  panel.innerHTML = `
+    <h2>⚔️ ${escapeHtml(currentParty.name)}</h2>
+    <div style="display:inline-block;margin:8px 0 12px;padding:7px 11px;border-radius:8px;background:#3d2860;color:#d8bdff;font-weight:bold;">
+      🕐 Teen Years lobby
+    </div>
+    <div>Join-code:<span class="party-code">${escapeHtml(currentParty.join_code)}</span></div>
+
+    <div class="party-members">
+      <strong>👥 Leden (${currentPartyMembers.length}/8)</strong>
+      <div class="ready-list">${memberRows}</div>
+    </div>
+
+    ${!started ? `
+      <div class="ready-row">
+        <div>
+          <strong>${readyCount}/${currentPartyMembers.length} klaar</strong>
+          <div style="color:#8e8298;font-size:12px;margin-top:3px">Iedereen in de lobby moet op Klaar drukken.</div>
+        </div>
+        <button onclick="setReady()">${myMember?.ready ? "✓ Klaar — klik om terug te gaan" : "Ik ben klaar"}</button>
+      </div>
+
+      ${isDMUser ? `
+        <button style="margin-top:15px;width:100%;" onclick="startParty()" ${allReady ? "" : "disabled class=\"start-locked\""}>
+          ${allReady ? "▶️ Start Teen Years" : "🔒 Start — nog niet iedereen klaar"}
+        </button>
+      ` : ""}
+    ` : ""}
+
+    ${!isDMUser && !started ? '<button class="danger" style="margin-top:15px" onclick="leaveParty()">Party verlaten</button>' : ""}
+
+    <div style="color:#8e8298;margin-top:10px">
+      ${isDMUser
+        ? (allReady ? "Iedereen is klaar. Je kunt de Teen Years starten." : "Wacht tot iedereen op Klaar heeft gedrukt.")
+        : (myMember?.ready ? "Je staat op Klaar. Wacht op de rest en de DM." : "Druk op Ik ben klaar wanneer je klaar bent.")}
+    </div>
+  `;
+}
+
+/* =========================
+   PARTY STATUS REFRESH
+========================= */
+
+setInterval(() => {
+  if (currentUser && currentParty) {
+    loadParty();
+  }
+}, 5000);
+
+setInterval(() => {
+  if (currentUser && currentParty?.status === "started") {
+    loadPartyCharacters();
+  }
+}, 5000);
+
+
+
+/* =========================
+   CHARACTER DATA
+   VOORLOPIG LOKAAL
+========================= */
+
+const STORAGE_KEY =
+  "dnd-for-us-v1";
+
+const STAT_NAMES = [
+  "STR",
+  "DEX",
+  "CON",
+  "INT",
+  "WIS",
+  "CHA"
+];
+
+
+let players =
+  JSON.parse(
+    localStorage.getItem(
+      STORAGE_KEY
+    )
+  ) || [];
+
+
+function save() {
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(players)
+  );
+
+}
+
+
+/* =========================
+   PLAYER
+========================= */
+
+function addPlayer() {
+
+  if (currentProfile?.role !== "DM") {
+    alert("Alleen de DM kan een player toevoegen.");
+    return;
+  }
+
+  if(players.length >= 5) {
+
+    alert(
+      "Maximaal 5 spelers."
+    );
+
+    return;
+
+  }
+
+
+  players.push({
+
+    id: Date.now(),
+
+    name: "Nieuwe speler",
+
+    image: "",
+
+    stats: {
+
+      STR: 10,
+      DEX: 10,
+      CON: 10,
+      INT: 10,
+      WIS: 10,
+      CHA: 10
+
+    },
+
+    abilities: []
+
+  });
+
+
+  save();
+
+  render();
+
+}
+
+
+function deletePlayer(id) {
+
+  if(
+    !confirm(
+      "Deze speler verwijderen?"
+    )
+  ) return;
+
+
+  players =
+    players.filter(
+      p => p.id !== id
+    );
+
+
+  save();
+
+  render();
+
+}
+
+
+/* =========================
+   MOVES
+========================= */
+
+function addAbility(
+  playerId
+) {
+
+  const player =
+    players.find(
+      p => p.id === playerId
+    );
+
+
+  player.abilities.push({
+
+    id: Date.now(),
+
+    name: "Nieuwe move",
+
+    damage: "0",
+
+    requirement: "Geen",
+
+    description: ""
+
+  });
+
+
+  save();
+
+  render();
+
+}
+
+
+function deleteAbility(
+  playerId,
+  abilityId
+) {
+
+  const player =
+    players.find(
+      p => p.id === playerId
+    );
+
+
+  player.abilities =
+    player.abilities.filter(
+      a => a.id !== abilityId
+    );
+
+
+  save();
+
+  render();
+
+}
+
+
+/* =========================
+   IMAGE
+========================= */
+
+function compressImage(
+  file,
+  callback
+) {
+
+  const reader =
+    new FileReader();
+
+
+  reader.onload =
+    function(e) {
+
+      const img =
+        new Image();
+
+
+      img.onload =
+        function() {
+
+          const max =
+            500;
+
+          let width =
+            img.width;
+
+          let height =
+            img.height;
+
+
+          if(width > max) {
+
+            height =
+              Math.round(
+                height *
+                max /
+                width
+              );
+
+            width =
+              max;
+
+          }
+
+
+          const canvas =
+            document.createElement(
+              "canvas"
+            );
+
+
+          canvas.width =
+            width;
+
+          canvas.height =
+            height;
+
+
+          canvas
+            .getContext("2d")
+            .drawImage(
+              img,
+              0,
+              0,
+              width,
+              height
+            );
+
+
+          callback(
+            canvas.toDataURL(
+              "image/jpeg",
+              0.82
+            )
+          );
+
+        };
+
+
+      img.src =
+        e.target.result;
+
+    };
+
+
+  reader.readAsDataURL(file);
+
+}
+
+
+function handleImageUpload(
+  playerId,
+  input
+) {
+
+  const file =
+    input.files[0];
+
+
+  if(!file) return;
+
+
+  compressImage(
+    file,
+    image => {
+
+      const player =
+        players.find(
+          p => p.id === playerId
+        );
+
+
+      player.image =
+        image;
+
+
+      save();
+
+      render();
+
+    }
+  );
+
+}
+
+
+function removeImage(
+  playerId
+) {
+
+  const player =
+    players.find(
+      p => p.id === playerId
+    );
+
+
+  player.image = "";
+
+  save();
+
+  render();
+
+}
+
+
+/* =========================
+   HTML VEILIG
+========================= */
+
+function escapeHtml(value) {
+
+  return String(
+    value ?? ""
+  )
+
+  .replaceAll(
+    "&",
+    "&amp;"
+  )
+
+  .replaceAll(
+    "<",
+    "&lt;"
+  )
+
+  .replaceAll(
+    ">",
+    "&gt;"
+  )
+
+  .replaceAll(
+    '"',
+    "&quot;"
+  )
+
+  .replaceAll(
+    "'",
+    "&#039;"
+  );
+
+}
+
+
+/* =========================
+   RENDER
+========================= */
+
+function render() {
+
+  if (currentParty?.status === "started") {
+    const oldContainer = document.getElementById("players");
+    if (oldContainer) oldContainer.innerHTML = "";
+    renderPartyCharacters();
+    return;
+  }
+
+  const container =
+    document.getElementById(
+      "players"
+    );
+
+
+  if(players.length === 0) {
+
+    container.innerHTML = `
+
+      <div class="empty">
+
+        Nog geen spelers.
+
+        <br><br>
+
+        Klik op
+        <b>＋ Player</b>.
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    players.map(
+      player => `
+
+      <div class="player">
+
+        <div class="player-header">
+
+          <input
+
+            value="${escapeHtml(
+              player.name
+            )}"
+
+            onchange="
+              playerNameChanged(
+                ${player.id},
+                this.value
+              )
+            "
+
+          >
+
+          <button
+            class="danger small"
+            onclick="
+              deletePlayer(
+                ${player.id}
+              )
+            "
+          >
+            Verwijder
+          </button>
+
+        </div>
+
+
+        <div class="player-overview">
+
+
+          <div class="image-box">
+
+            ${
+              player.image
+
+              ?
+
+              `<img
+                class="character-image"
+                src="${player.image}"
+              >`
+
+              :
+
+              `<div
+                class="image-placeholder"
+              >
+                🧙
+              </div>`
+
+            }
+
+
+            <div class="image-controls">
+
+              <label
+                class="file-label"
+              >
+
+                📷 Kies afbeelding
+
+                <input
+                  class="file-input"
+                  type="file"
+                  accept="image/*"
+                  onchange="
+                    handleImageUpload(
+                      ${player.id},
+                      this
+                    )
+                  "
+                >
+
+              </label>
+
+              ${
+                player.image
+
+                ?
+
+                `<br><br>
+                 <button
+                   class="danger small"
+                   onclick="
+                     removeImage(
+                       ${player.id}
+                     )
+                   "
+                 >
+                   Verwijder foto
+                 </button>`
+
+                :
+
+                ""
+
+              }
+
+            </div>
+
+          </div>
+
+
+          <div class="stats">
+
+            ${STAT_NAMES.map(
+              stat => `
+
+              <div class="stat">
+
+                <label>
+                  ${stat} — ${formatModifier(getAbilityModifier(player.stats[stat]))}
+                </label>
+
+                <input
+                  type="number"
+                  min="0"
+                  max="20"
+                  step="1"
+                  value="${
+                    Number(
+                      player.stats[stat]
+                    ) || 0
+                  }"
+                  onchange="
+                    statChanged(
+                      ${player.id},
+                      '${stat}',
+                      this.value
+                    )
+                  "
+                >
+
+              </div>
+
+              `
+            ).join("")}
+
+          </div>
+
+        </div>
+
+
+        <h3 class="section-title">
+          ⚔️ Abilities / Moves
+        </h3>
+
+
+        <div class="abilities">
+
+          ${
+            player.abilities.length
+
+            ?
+
+            player.abilities.map(
+              ability => `
+
+              <div class="ability">
+
+                <div class="ability-grid">
+
+                  <input
+                    placeholder="Naam"
+                    value="${escapeHtml(
+                      ability.name
+                    )}"
+                    onchange="
+                      abilityChanged(
+                        ${player.id},
+                        ${ability.id},
+                        'name',
+                        this.value
+                      )
+                    "
+                  >
+
+                  <input
+                    placeholder="Damage"
+                    value="${escapeHtml(
+                      ability.damage
+                    )}"
+                    onchange="
+                      abilityChanged(
+                        ${player.id},
+                        ${ability.id},
+                        'damage',
+                        this.value
+                      )
+                    "
+                  >
+
+                  <input
+                    placeholder="Requirement"
+                    value="${escapeHtml(
+                      ability.requirement
+                    )}"
+                    onchange="
+                      abilityChanged(
+                        ${player.id},
+                        ${ability.id},
+                        'requirement',
+                        this.value
+                      )
+                    "
+                  >
+
+                </div>
+
+
+                <textarea
+                  placeholder="Kleine beschrijving..."
+                  onchange="
+                    abilityChanged(
+                      ${player.id},
+                      ${ability.id},
+                      'description',
+                      this.value
+                    )
+                  "
+                >${escapeHtml(
+                  ability.description
+                )}</textarea>
+
+
+                <br>
+
+                <button
+                  class="danger small"
+                  onclick="
+                    deleteAbility(
+                      ${player.id},
+                      ${ability.id}
+                    )
+                  "
+                >
+                  Verwijder move
+                </button>
+
+              </div>
+
+              `
+            ).join("")
+
+            :
+
+            `<div style="color:#8e8298">
+              Nog geen moves.
+            </div>`
+
+          }
+
+        </div>
+
+
+        <br>
+
+        <button
+          onclick="
+            addAbility(
+              ${player.id}
+            )
+          "
+        >
+          ＋ Move / Ability
+        </button>
+
+
+      </div>
+
+      `
+    ).join("");
+
+}
+
+
+/* =========================
+   EDIT FUNCTIES
+========================= */
+
+function playerNameChanged(
+  id,
+  value
+) {
+
+  const player =
+    players.find(
+      p => p.id === id
+    );
+
+  if(player) {
+
+    player.name =
+      value;
+
+    save();
+
+  }
+
+}
+
+
+function statChanged(
+  id,
+  stat,
+  value
+) {
+
+  const player =
+    players.find(
+      p => p.id === id
+    );
+
+  if(player) {
+
+    player.stats[stat] =
+      Math.max(0, Math.min(20, Math.trunc(Number(value) || 0)));
+
+    save();
+
+  }
+
+}
+
+
+function abilityChanged(
+  playerId,
+  abilityId,
+  property,
+  value
+) {
+
+  const player =
+    players.find(
+      p => p.id === playerId
+    );
+
+
+  const ability =
+    player?.abilities.find(
+      a => a.id === abilityId
+    );
+
+
+  if(ability) {
+
+    ability[property] =
+      value;
+
+    save();
+
+  }
+
+}
+
+
+/* =========================
+   START
+========================= */
+
+loadUser();
+
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DND For Us — Teen Years</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Arial,sans-serif;background:#100d18;color:#fff;display:flex;align-items:center;justify-content:center;padding:20px}
+.story{width:min(850px,100%);background:#1a1523;border:1px solid #3a2a4c;border-radius:20px;padding:40px;text-align:center;box-shadow:0 20px 60px #0008}
+.badge{display:inline-block;padding:7px 12px;border-radius:999px;background:#3d2860;color:#d8bdff;font-size:12px;font-weight:bold;letter-spacing:.06em}
+h1{color:#c9a7ff;font-size:clamp(2rem,6vw,4rem);margin:20px 0 10px}
+p{color:#b9aed0;line-height:1.6}
+.wip{margin:30px 0;padding:28px;border:1px dashed #72559a;border-radius:16px;background:#14101c}
+.wip strong{display:block;font-size:2rem;color:#fff;margin-bottom:8px}
+button{border:0;border-radius:8px;padding:10px 14px;background:#6d3bb5;color:#fff;font-weight:bold;cursor:pointer}
+button:hover{background:#824bd0}
+#error{color:#ffb3b3}
+</style>
+</head>
+<body>
+<div class="story">
+  <span class="badge">TEEN YEARS • 2006 • JJK</span>
+  <h1>Story Mode</h1>
+  <p id="partyName">Laden...</p>
+  <div class="wip">
+    <strong>WORK IN PROGRESS</strong>
+    <span>De Teen Years story mode komt hier.</span>
+  </div>
+  <p id="error"></p>
+  <button onclick="logout()">Uitloggen</button>
+</div>
+<script>
+const SUPABASE_URL="https://smrmzoljzglgqzdjvqjl.supabase.co";
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtcm16b2xqemdsZ3F6ZGp2cWpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA4NjgwNTgsImV4cCI6MjEwNjQ0NDA1OH0.JBBu1_-X5X31cDx0URk2o1xIHJF55REsMhiiqJR-XTk';
+// De echte anon key wordt hieronder uit session storage gehaald wanneer index.html hem beschikbaar maakt.
+// Als deze pagina zelfstandig wordt geopend, vul dezelfde Supabase anon key in als in index.html.
+const client=window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function logout(){await client.auth.signOut();location.href="index.html";}
+async function init(){
+  const {data:{user}}=await client.auth.getUser();
+  if(!user){location.href="index.html";return;}
+  const partyId=new URLSearchParams(location.search).get("party");
+  if(!partyId){document.getElementById("error").textContent="Geen party gevonden.";return;}
+  const {data:party,error}=await client.from("parties").select("id,name,status").eq("id",partyId).single();
+  if(error||!party){document.getElementById("error").textContent="Deze party bestaat niet meer.";return;}
+  const {data:member}=await client.from("party_members").select("user_id").eq("party_id",partyId).eq("user_id",user.id).maybeSingle();
+  if(!member){document.getElementById("error").textContent="Je bent geen lid van deze party.";return;}
+  if(party.status!=="started"){location.href="index.html";return;}
+  document.getElementById("partyName").textContent=party.name;
+}
+init();
+</script>
+</body>
+</html>
+index.html
+HTML
+story.html
+HTML
+party-lobby-migration.sql
+Code
