@@ -1107,6 +1107,7 @@ function showApp() {
 
 
   render();
+  showDNDSelection();
   loadParty();
 
 }
@@ -1143,6 +1144,12 @@ async function logout() {
   currentUser = null;
 
   currentProfile = null;
+  currentParty = null;
+  currentPartyMembers = [];
+  selectedDND = null;
+  partyStatusInitialized = false;
+  previousPartyStatus = null;
+  redirectingToStory = false;
 
   showAuth();
 
@@ -1221,7 +1228,7 @@ function canEditCharacter(character) {
 }
 
 async function ensurePartyCharacters() {
-  if (!currentParty || currentParty.status !== "started") return;
+  if (!currentParty) return;
 
   const memberIds = currentPartyMembers.map(m => m.id);
 
@@ -1243,7 +1250,7 @@ async function ensurePartyCharacters() {
 }
 
 async function loadPartyCharacters() {
-  if (!currentParty || currentParty.status !== "started") {
+  if (!currentParty) {
     partyCharacters = [];
     renderPartyCharacters();
     return;
@@ -1490,8 +1497,9 @@ async function applyTeenRole(roleId){
 function chooseDND(dndId) {
   if (dndId !== "teen-years") return;
   selectedDND = dndId;
-  document.getElementById("dndSelect").style.display = "none";
-  document.getElementById("partyCharacters").style.display = "";
+  const select = document.getElementById("dndSelect");
+  if (select) select.style.display = "none";
+  renderPartyPanel();
   renderPartyCharacters();
 }
 
@@ -1507,19 +1515,13 @@ function renderPartyCharacters() {
   const container = document.getElementById("partyCharacters");
   if (!container) return;
 
-  if (!currentParty || currentParty.status !== "started") {
+  if (!currentParty || selectedDND !== "teen-years") {
     container.innerHTML = "";
-    const select = document.getElementById("dndSelect");
-    if (select) select.style.display = "none";
+    if (!currentParty) showDNDSelection();
     return;
   }
 
-  // Eerst een DND kiezen nadat de party gestart is.
-  if (!selectedDND) {
-    showDNDSelection();
-    container.innerHTML = "";
-    return;
-  }
+  container.style.display = "";
 
   const members = [...currentPartyMembers].sort((a,b) => {
     if (a.id === currentParty.dm_id) return -1;
@@ -1701,6 +1703,8 @@ let currentParty = null;
 let currentPartyMembers = [];
 let partyStatusChannel = null;
 let redirectingToStory = false;
+let partyStatusInitialized = false;
+let previousPartyStatus = null;
 
 function randomJoinCode() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -1906,6 +1910,8 @@ async function loadParty() {
     currentParty = null;
     currentPartyMembers = [];
     partyCharacters = [];
+    partyStatusInitialized = false;
+    previousPartyStatus = null;
     if (partyStatusChannel) { supabaseClient.removeChannel(partyStatusChannel); partyStatusChannel = null; }
     renderPartyPanel();
     renderPartyCharacters();
@@ -1919,18 +1925,30 @@ async function loadParty() {
     currentParty = null;
     currentPartyMembers = [];
     partyCharacters = [];
+    partyStatusInitialized = false;
+    previousPartyStatus = null;
     renderPartyPanel();
     renderPartyCharacters();
     return;
   }
 
   currentParty = party;
+  // Deze party is Teen Years; de DND-keuze hoeft niet opnieuw getoond te worden.
+  selectedDND = "teen-years";
 
-  if (currentParty.status === "started" && !redirectingToStory) {
+  // Bij het inloggen blijven we in de lobby. Alleen een echte overgang
+  // van lobby -> started stuurt spelers automatisch naar Story Mode.
+  const isFirstPartyLoad = !partyStatusInitialized || previousPartyStatus === null;
+  const justStarted = !isFirstPartyLoad && previousPartyStatus !== "started" && currentParty.status === "started";
+
+  if (justStarted && !redirectingToStory) {
     redirectingToStory = true;
     window.location.href = "story.html?party=" + encodeURIComponent(currentParty.id);
     return;
   }
+
+  previousPartyStatus = currentParty.status;
+  partyStatusInitialized = true;
 
   const { data: members } = await supabaseClient
     .from("party_members")
@@ -1956,13 +1974,10 @@ async function loadParty() {
   renderPartyPanel();
   subscribePartyLobby();
 
-  if (currentParty.status === "started") {
-    await ensurePartyCharacters();
-    subscribePartyCharacters();
-  } else {
-    partyCharacters = [];
-    renderPartyCharacters();
-  }
+  // Characters worden al in de lobby aangemaakt, zodat iedereen vóór de start
+  // zijn/haar personage kan invullen.
+  await ensurePartyCharacters();
+  subscribePartyCharacters();
 }
 
 function subscribePartyCharacters() {
@@ -2018,6 +2033,12 @@ function renderPartyPanel() {
   }
 
   if (!currentParty) {
+    if (!selectedDND) {
+      panel.innerHTML = `<div class="party-panel-empty"><h2>🎲 Kies eerst je DND</h2><p>Kies Teen Years om een lobby te maken of met een join-code mee te doen.</p></div>`;
+      showDNDSelection();
+      return;
+    }
+
     panel.innerHTML = currentProfile?.role === "DM"
       ? `
         <h2>👑 DM Party</h2>
@@ -2043,6 +2064,9 @@ function renderPartyPanel() {
       `;
     return;
   }
+
+  const dndSelect = document.getElementById("dndSelect");
+  if (dndSelect) dndSelect.style.display = "none";
 
   const isDMUser = currentParty.dm_id === currentUser.id;
   const started = currentParty.status === "started";
@@ -2076,7 +2100,13 @@ function renderPartyPanel() {
       <div class="ready-list">${memberRows}</div>
     </div>
 
-    ${!started ? `
+    ${started ? `
+      <div style="margin-top:18px;padding:18px;border:1px solid #60477a;border-radius:12px;background:#14101c;text-align:center;">
+        <strong>⚔️ Deze DND is begonnen.</strong>
+        <div style="color:#8e8298;margin:6px 0 12px">De lobby is gesloten.</div>
+        <button onclick="window.location.href='story.html?party=${encodeURIComponent(currentParty.id)}'">📖 Naar Story Mode</button>
+      </div>
+    ` : `
       <div class="ready-row">
         <div>
           <strong>${readyCount}/${currentPartyMembers.length} klaar</strong>
