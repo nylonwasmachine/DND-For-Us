@@ -23,10 +23,10 @@ button:hover{background:#824bd0}
 <div class="story">
   <span class="badge">TEEN YEARS • 2006 • JJK</span>
   <h1>Story Mode</h1>
-  <p id="partyName">Laden...</p>
+  <p id="partyName">De DM is gestart. De DND is begonnen.</p>
   <div class="wip">
     <strong>WORK IN PROGRESS</strong>
-    <span>De Teen Years story mode komt hier.</span>
+    <span>De Teen Years story mode begint hier zodra de DM de party heeft gestart.</span>
   </div>
   <p id="error"></p>
   <button onclick="logout()">Uitloggen</button>
@@ -49,7 +49,7 @@ async function init(){
   const {data:member}=await client.from("party_members").select("user_id").eq("party_id",partyId).eq("user_id",user.id).maybeSingle();
   if(!member){document.getElementById("error").textContent="Je bent geen lid van deze party.";return;}
   if(party.status!=="started"){location.href="index.html";return;}
-  document.getElementById("partyName").textContent=party.name;
+  document.getElementById("partyName").textContent=party.name + " — DND begonnen";
 }
 init();
 </script>
