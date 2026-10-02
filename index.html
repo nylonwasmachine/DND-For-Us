@@ -430,6 +430,28 @@ button.small {
   padding:8px;
   font-size:18px;
 }
+ .character-stat .stat-modifier{
+  margin-top:6px;
+  color:#c9a7ff;
+  font-weight:bold;
+  font-size:13px;
+}
+.character-stat .stat-hint{
+  color:#8e8298;
+  font-size:11px;
+  margin-top:3px;
+}
+.dnd-stat-rules{
+  margin-top:18px;
+  background:#14101c;
+  border:1px solid #3d2c4e;
+  border-radius:12px;
+  padding:14px;
+}
+.dnd-stat-rules h3{margin:0 0 8px;color:#c9a7ff}
+.dnd-stat-rules-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.dnd-rule{background:#1b1624;border-radius:8px;padding:9px;color:#bfaed0;font-size:12px}
+.dnd-rule b{color:#fff}
 .casts{
   display:grid;
   gap:10px;
@@ -1149,6 +1171,20 @@ let partyCharacterChannel = null;
 
 const DND_STAT_NAMES = ["STR","DEX","CON","INT","WIS","CHA"];
 
+// Officiële D&D ability-score modifier: floor((score - 10) / 2).
+function getAbilityModifier(score) {
+  const n = Math.trunc(Number(score) || 0);
+  return Math.floor((n - 10) / 2);
+}
+
+function formatModifier(modifier) {
+  return modifier >= 0 ? `+${modifier}` : `${modifier}`;
+}
+
+function clampStat(value) {
+  return Math.max(0, Math.min(20, Math.trunc(Number(value) || 0)));
+}
+
 function defaultCharacter(userId) {
   return {
     party_id: currentParty.id,
@@ -1236,7 +1272,7 @@ async function updateCharacter(userId, field, value) {
   } else if (field === "image") {
     patch.image = value;
   } else if (DND_STAT_NAMES.includes(field)) {
-    const statValue = Math.max(0, Math.min(10, Math.trunc(Number(value) || 0)));
+    const statValue = clampStat(value);
     patch.stats = {
       ...(character.stats || {}),
       [field]: statValue
@@ -1565,14 +1601,28 @@ function renderPartyCharacters() {
                       <input
                         type="number"
                         min="0"
-                        max="10"
+                        max="20"
                         step="1"
-                        value="${Math.max(0, Math.min(10, Number(stats[stat]) || 0))}"
+                        value="${clampStat(stats[stat])}"
                         ${editable ? "" : "disabled"}
                         onchange="updateCharacter('${member.id}', '${stat}', this.value)"
                       >
+                      <div class="stat-modifier">Modifier: ${formatModifier(getAbilityModifier(stats[stat]))}</div>
+                      <div class="stat-hint">D20: d20 ${getAbilityModifier(stats[stat]) >= 0 ? '+' : '−'} ${Math.abs(getAbilityModifier(stats[stat]))}</div>
                     </div>
                   `).join("")}
+                </div>
+
+                <div class="dnd-stat-rules">
+                  <h3>📖 D&D stat-regels</h3>
+                  <div class="dnd-stat-rules-grid">
+                    <div class="dnd-rule"><b>Ability check:</b> d20 + relevante stat-modifier.</div>
+                    <div class="dnd-rule"><b>Saving throw:</b> d20 + relevante stat-modifier; proficiency kan erbij komen.</div>
+                    <div class="dnd-rule"><b>Initiative:</b> d20 + DEX-modifier.</div>
+                    <div class="dnd-rule"><b>Passive check:</b> 10 + alle normale modifiers.</div>
+                    <div class="dnd-rule"><b>Advantage:</b> 2d20 en neem de hoogste. <b>Disadvantage:</b> 2d20 en neem de laagste.</div>
+                    <div class="dnd-rule"><b>Proficiency:</b> een aparte bonus die je bij bepaalde checks/saves mag optellen als je daarvoor proficient bent.</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2476,13 +2526,13 @@ function render() {
               <div class="stat">
 
                 <label>
-                  ${stat}
+                  ${stat} — ${formatModifier(getAbilityModifier(player.stats[stat]))}
                 </label>
 
                 <input
                   type="number"
                   min="0"
-                  max="10"
+                  max="20"
                   step="1"
                   value="${
                     Number(
@@ -2681,7 +2731,7 @@ function statChanged(
   if(player) {
 
     player.stats[stat] =
-      Math.max(0, Math.min(10, Math.trunc(Number(value) || 0)));
+      Math.max(0, Math.min(20, Math.trunc(Number(value) || 0)));
 
     save();
 
@@ -2731,3 +2781,63 @@ loadUser();
 
 </body>
 </html>
+
+-- Ook bij nieuwe characters worden stats veilig op 0 t/m 20 gehouden.
+create or replace function public.validate_party_character_insert()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  party_dm uuid;
+  stat_name text;
+  stat_value numeric;
+begin
+  select dm_id into party_dm
+  from public.parties
+  where id = new.party_id;
+
+  if auth.uid() = party_dm then
+    foreach stat_name in array array['STR','DEX','CON','INT','WIS','CHA']
+    loop
+      if not (new.stats ? stat_name) then
+        raise exception 'Stat % ontbreekt.', stat_name;
+      end if;
+      stat_value := (new.stats ->> stat_name)::numeric;
+      if stat_value <> trunc(stat_value) or stat_value < 0 or stat_value > 20 then
+        raise exception 'Elke stat moet een heel getal van 0 t/m 20 zijn.';
+      end if;
+    end loop;
+    return new;
+  end if;
+
+  if new.role is not null then
+    if new.role not in ('strongest','curse-eater','nurse','bag') then
+      raise exception 'Ongeldige Teen Years role.';
+    end if;
+    new.stats := case new.role
+      when 'strongest' then '{"STR":10,"DEX":5,"CON":5,"INT":3,"WIS":5,"CHA":5}'::jsonb
+      when 'curse-eater' then '{"STR":5,"DEX":8,"CON":5,"INT":5,"WIS":5,"CHA":5}'::jsonb
+      when 'nurse' then '{"STR":2,"DEX":2,"CON":9,"INT":9,"WIS":9,"CHA":2}'::jsonb
+      when 'bag' then '{"STR":3,"DEX":10,"CON":3,"INT":3,"WIS":3,"CHA":3}'::jsonb
+    end;
+  end if;
+
+  return new;
+end;
+$$;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_trigger
+    where tgname = 'validate_party_character_insert'
+      and tgrelid = 'public.party_characters'::regclass
+  ) then
+    create trigger validate_party_character_insert
+    before insert on public.party_characters
+    for each row
+    execute function public.validate_party_character_insert();
+  end if;
+end $$;
