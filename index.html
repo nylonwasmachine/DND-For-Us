@@ -1898,6 +1898,57 @@ async function leaveParty() {
   renderPartyPanel();
 }
 
+async function leaveRun() {
+  if (!currentParty || !currentUser || currentParty.status !== "started") return;
+
+  if (!confirm("Weet je zeker dat je deze run wilt verlaten? Je verlaat alleen deze run; je account blijft bestaan.")) return;
+
+  const { error } = await supabaseClient.from("party_members")
+    .delete()
+    .eq("party_id", currentParty.id)
+    .eq("user_id", currentUser.id);
+
+  if (error) {
+    alert("Run verlaten mislukt: " + error.message);
+    return;
+  }
+
+  currentParty = null;
+  currentPartyMembers = [];
+  partyCharacters = [];
+  partyStatusInitialized = false;
+  previousPartyStatus = null;
+  renderPartyPanel();
+  renderPartyCharacters();
+}
+
+async function stopParty() {
+  if (!currentParty || !currentUser || currentParty.dm_id !== currentUser.id) return;
+  if (!confirm("Run stoppen? De Teen Years-run wordt beëindigd en de party/lobby wordt verwijderd.")) return;
+
+  const { data, error } = await supabaseClient.rpc("stop_party", {
+    target_party_id: currentParty.id
+  });
+
+  if (error) {
+    alert("Run stoppen mislukt: " + error.message);
+    return;
+  }
+
+  if (!data?.success) {
+    alert(data?.message || "De run kon niet worden gestopt.");
+    return;
+  }
+
+  currentParty = null;
+  currentPartyMembers = [];
+  partyCharacters = [];
+  partyStatusInitialized = false;
+  previousPartyStatus = null;
+  renderPartyPanel();
+  renderPartyCharacters();
+}
+
 async function loadParty() {
   if (!currentUser) return;
 
@@ -2122,7 +2173,10 @@ function renderPartyPanel() {
       ` : ""}
     ` : ""}
 
-    ${!isDMUser && !started ? '<button class="danger" style="margin-top:15px" onclick="leaveParty()">Party verlaten</button>' : ""}
+    ${started ? (isDMUser
+      ? '<button class="danger" style="margin-top:15px;width:100%" onclick="stopParty()">⏹ Stop Run</button>'
+      : '<button class="danger" style="margin-top:15px;width:100%" onclick="leaveRun()">🚪 Verlaat Run</button>')
+      : (!isDMUser ? '<button class="danger" style="margin-top:15px;width:100%" onclick="leaveParty()">Party verlaten</button>' : "")}
 
     <div style="color:#8e8298;margin-top:10px">
       ${isDMUser
