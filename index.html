@@ -747,6 +747,22 @@ button.small {
   </div>
 </div>
 
+<div id="partySetup" class="party-panel" style="display:none; margin-top:20px;">
+  <h2>⚔️ Teen Years party</h2>
+  <p style="color:#b9a9c4">Maak een nieuwe party als DM, of join een bestaande party met een code.</p>
+
+  <div id="dmPartyCreator" style="display:none;">
+    <h3>👑 DM — nieuwe party</h3>
+    <input id="newPartyName" placeholder="Naam van je party">
+    <button onclick="createParty()">＋ Maak Teen Years party</button>
+  </div>
+
+  <div style="margin-top:18px;">
+    <h3>👥 Join een party</h3>
+    <input id="joinPartyCode" maxlength="6" placeholder="Join-code, bijv. AB7KQ2">
+    <button onclick="joinParty()">🔗 Join party</button>
+  </div>
+</div>
 
 
 <div id="roleModalBackdrop" class="role-modal-backdrop" onclick="closeRoleModal(event)">
@@ -1494,20 +1510,37 @@ async function applyTeenRole(roleId){
 }
 
 
+function updatePartySetupVisibility() {
+  const setup = document.getElementById("partySetup");
+  const dmCreator = document.getElementById("dmPartyCreator");
+  const select = document.getElementById("dndSelect");
+  const characters = document.getElementById("partyCharacters");
+
+  const teenSelected = selectedDND === "teen-years";
+  const hasParty = !!currentParty;
+
+  if (setup) setup.style.display = teenSelected && !hasParty ? "block" : "none";
+  if (dmCreator) dmCreator.style.display = teenSelected && !hasParty && currentProfile?.role === "DM" ? "block" : "none";
+  if (select) select.style.display = teenSelected ? "none" : "";
+  if (characters && !hasParty) characters.style.display = "none";
+}
+
 function chooseDND(dndId) {
   if (dndId !== "teen-years") return;
   selectedDND = dndId;
-  const select = document.getElementById("dndSelect");
-  if (select) select.style.display = "none";
+  updatePartySetupVisibility();
   renderPartyPanel();
   renderPartyCharacters();
 }
 
 function showDNDSelection() {
+  selectedDND = null;
   const select = document.getElementById("dndSelect");
+  const setup = document.getElementById("partySetup");
   const characters = document.getElementById("partyCharacters");
 
   if (select) select.style.display = "";
+  if (setup) setup.style.display = "none";
   if (characters) characters.style.display = "none";
 }
 
@@ -1966,6 +1999,7 @@ async function loadParty() {
     if (partyStatusChannel) { supabaseClient.removeChannel(partyStatusChannel); partyStatusChannel = null; }
     renderPartyPanel();
     renderPartyCharacters();
+    updatePartySetupVisibility();
     return;
   }
 
@@ -1984,6 +2018,7 @@ async function loadParty() {
   }
 
   currentParty = party;
+  updatePartySetupVisibility();
   // Deze party is Teen Years; de DND-keuze hoeft niet opnieuw getoond te worden.
   selectedDND = "teen-years";
 
