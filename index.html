@@ -2075,115 +2075,76 @@ function subscribePartyLobby() {
 
 function renderPartyPanel() {
   const panel = document.getElementById("partyPanel");
-  if (!panel || !currentUser) return;
-
-  const addButton = document.getElementById("addPlayerButton");
-  if (addButton) {
-    addButton.style.display = currentProfile?.role === "DM" ? "inline-block" : "none";
-    addButton.disabled = false;
-  }
+  if (!panel) return;
 
   if (!currentParty) {
-    if (!selectedDND) {
-      panel.innerHTML = `<div class="party-panel-empty"><h2>🎲 Kies eerst je DND</h2><p>Kies Teen Years om een lobby te maken of met een join-code mee te doen.</p></div>`;
-      showDNDSelection();
-      return;
-    }
-
-    panel.innerHTML = currentProfile?.role === "DM"
-      ? `
-        <h2>👑 DM Party</h2>
-        <div class="party-actions">
-          <input id="newPartyName" placeholder="Naam van je nieuwe party">
-          <button onclick="createParty()">＋ Party aanmaken</button>
-        </div>
-        <div style="color:#8e8298">Maak een party aan en deel de join-code. Maximaal 8 mensen.</div>
-        <hr style="border-color:#3a2a4c;margin:18px 0;">
-        <h2>🎮 Bij een party aansluiten</h2>
-        <div class="party-actions">
-          <input id="joinPartyCode" placeholder="Bijv. DRK7X2" maxlength="6">
-          <button onclick="joinParty()">Join party</button>
-        </div>
-      `
-      : `
-        <h2>🎮 Bij een party aansluiten</h2>
-        <div class="party-actions">
-          <input id="joinPartyCode" placeholder="Join-code" maxlength="6">
-          <button onclick="joinParty()">Join party</button>
-        </div>
-        <div style="color:#8e8298">Vraag de join-code aan je DM.</div>
-      `;
+    panel.innerHTML = "";
     return;
   }
 
-  const dndSelect = document.getElementById("dndSelect");
-  if (dndSelect) dndSelect.style.display = "none";
-
-  const isDMUser = currentParty.dm_id === currentUser.id;
   const started = currentParty.status === "started";
+  const isDMUser = currentUser && currentParty.dm_id === currentUser.id;
+  const myMember = currentPartyMembers.find(m => m.id === currentUser?.id);
   const readyCount = currentPartyMembers.filter(m => m.ready).length;
   const allReady = currentPartyMembers.length > 0 && readyCount === currentPartyMembers.length;
-  const myMember = currentPartyMembers.find(m => m.id === currentUser.id);
 
   const memberRows = currentPartyMembers.length
-    ? currentPartyMembers.map(m => `
-        <div class="ready-member">
-          <span>${m.role === "DM" ? "👑 " : ""}${escapeHtml(m.username)}</span>
-          <span>
-            <span class="${m.ready ? "ready-ok" : "ready-wait"}">${m.ready ? "✓ Klaar" : "○ Wacht"}</span>
-            ${isDMUser && !started && m.id !== currentUser.id
-              ? `<button class="danger small kick-btn" onclick="kickMember('${m.id}')">🦶 Kick</button>`
-              : ""}
-          </span>
-        </div>
-      `).join("")
+    ? currentPartyMembers.map(m => {
+        const isDM = m.id === currentParty.dm_id;
+        const readyText = m.ready ? "✓ Klaar" : "○ Wacht";
+        const kick = isDMUser && !started && !isDM
+          ? `<button class="danger small kick-btn" onclick="kickMember('${m.id}')">🦶 Kick</button>`
+          : "";
+        return `<div class="party-member-row">
+          <span><b>${escapeHtml(m.username || "Speler")}</b> ${isDM ? "👑 DM" : ""}</span>
+          <span><span class="${m.ready ? "ready-ok" : "ready-wait"}">${readyText}</span> ${kick}</span>
+        </div>`;
+      }).join("")
     : "<div>Geen leden gevonden.</div>";
 
-  panel.innerHTML = `
-    <h2>⚔️ ${escapeHtml(currentParty.name)}</h2>
-    <div style="display:inline-block;margin:8px 0 12px;padding:7px 11px;border-radius:8px;background:#3d2860;color:#d8bdff;font-weight:bold;">
-      🕐 Teen Years lobby
-    </div>
-    <div>Join-code:<span class="party-code">${escapeHtml(currentParty.join_code)}</span></div>
+  let controls = "";
+  if (started) {
+    controls = `<div style="margin-top:18px;padding:18px;border:1px solid #60477a;border-radius:12px;background:#14101c;text-align:center;">
+      <strong>⚔️ Deze DND is begonnen.</strong>
+      <div style="color:#8e8298;margin:6px 0 12px">De lobby is gesloten.</div>
+      <button onclick="window.location.href='story.html?party=${encodeURIComponent(currentParty.id)}'">📖 Naar Story Mode</button>
+    </div>`;
+    controls += isDMUser
+      ? `<button class="danger" style="margin-top:15px;width:100%" onclick="stopParty()">⏹ Stop Run</button>`
+      : `<button class="danger" style="margin-top:15px;width:100%" onclick="leaveRun()">🚪 Verlaat Run</button>`;
+  } else {
+    controls = `<div class="ready-row">
+      <div>
+        <strong>${readyCount}/${currentPartyMembers.length} klaar</strong>
+        <div style="color:#8e8298;font-size:12px;margin-top:3px">Iedereen in de lobby moet op Klaar drukken.</div>
+      </div>
+      <button onclick="setReady()">${myMember?.ready ? "✓ Klaar — klik om terug te gaan" : "Ik ben klaar"}</button>
+    </div>`;
 
+    if (isDMUser) {
+      controls += `<button style="margin-top:15px;width:100%;" onclick="startParty()" ${allReady ? "" : "disabled"}>
+        ${allReady ? "▶️ Start Teen Years" : "🔒 Start — nog niet iedereen klaar"}
+      </button>`;
+    }
+
+    if (!isDMUser) {
+      controls += `<button class="danger" style="margin-top:15px;width:100%" onclick="leaveParty()">Party verlaten</button>`;
+    }
+  }
+
+  const statusText = isDMUser
+    ? (allReady ? "Iedereen is klaar. Je kunt de Teen Years starten." : "Wacht tot iedereen op Klaar heeft gedrukt.")
+    : (myMember?.ready ? "Je staat op Klaar. Wacht op de rest en de DM." : "Druk op Ik ben klaar wanneer je klaar bent.");
+
+  panel.innerHTML = `<h2>⚔️ ${escapeHtml(currentParty.name)}</h2>
+    <div style="display:inline-block;margin:8px 0 12px;padding:7px 11px;border-radius:8px;background:#3d2860;color:#d8bdff;font-weight:bold;">🕐 Teen Years lobby</div>
+    <div>Join-code:<span class="party-code">${escapeHtml(currentParty.join_code)}</span></div>
     <div class="party-members">
       <strong>👥 Leden (${currentPartyMembers.length}/8)</strong>
       <div class="ready-list">${memberRows}</div>
     </div>
-
-    ${started ? `
-      <div style="margin-top:18px;padding:18px;border:1px solid #60477a;border-radius:12px;background:#14101c;text-align:center;">
-        <strong>⚔️ Deze DND is begonnen.</strong>
-        <div style="color:#8e8298;margin:6px 0 12px">De lobby is gesloten.</div>
-        <button onclick="window.location.href='story.html?party=${encodeURIComponent(currentParty.id)}'">📖 Naar Story Mode</button>
-      </div>
-    ` : `
-      <div class="ready-row">
-        <div>
-          <strong>${readyCount}/${currentPartyMembers.length} klaar</strong>
-          <div style="color:#8e8298;font-size:12px;margin-top:3px">Iedereen in de lobby moet op Klaar drukken.</div>
-        </div>
-        <button onclick="setReady()">${myMember?.ready ? "✓ Klaar — klik om terug te gaan" : "Ik ben klaar"}</button>
-      </div>
-
-      ${isDMUser ? `
-        <button style="margin-top:15px;width:100%;" onclick="startParty()" ${allReady ? "" : "disabled class=\"start-locked\""}>
-          ${allReady ? "▶️ Start Teen Years" : "🔒 Start — nog niet iedereen klaar"}
-        </button>
-      ` : ""}
-    ` : ""}
-
-    ${started ? (isDMUser
-      ? '<button class="danger" style="margin-top:15px;width:100%" onclick="stopParty()">⏹ Stop Run</button>'
-      : '<button class="danger" style="margin-top:15px;width:100%" onclick="leaveRun()">🚪 Verlaat Run</button>')
-      : (!isDMUser ? '<button class="danger" style="margin-top:15px;width:100%" onclick="leaveParty()">Party verlaten</button>' : "")}
-
-    <div style="color:#8e8298;margin-top:10px">
-      ${isDMUser
-        ? (allReady ? "Iedereen is klaar. Je kunt de Teen Years starten." : "Wacht tot iedereen op Klaar heeft gedrukt.")
-        : (myMember?.ready ? "Je staat op Klaar. Wacht op de rest en de DM." : "Druk op Ik ben klaar wanneer je klaar bent.")}
-    </div>
-  `;
+    ${controls}
+    <div style="color:#8e8298;margin-top:10px">${statusText}</div>`;
 }
 
 /* =========================
